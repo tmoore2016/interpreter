@@ -2,8 +2,12 @@
 
 package main
     
-import "fmt"
+import (
+    "fmt"
+    "github.com/tmoore2016/interpreter/stringutil"
+)
+
 
 func main() {
-    fmt.Printf("Welcome to Doorkey, a Monkey derivative! Test 123\n")
+    fmt.Printf(stringutil.Reverse("321 tseT !evitavired yeknoM a ,yekrooD ot emocleW\n"))
 }
