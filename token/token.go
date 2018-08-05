@@ -1,10 +1,11 @@
 // interpreter\token\token.go
+
 package token
 
 // TokenType Create a type of token
 type TokenType string
 
-// "Token" TokenType is a string
+// Token TokenType is a string
 type Token struct {
 	Type    TokenType
 	Literal string
@@ -36,3 +37,17 @@ const (
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
+
+// input for keywords
+var keywords = map[string]TokenType{
+	"fn":  FUNCTION,
+	"let": LET,
+}
+
+// LookupIdent determines whether identifier is a keyword
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
