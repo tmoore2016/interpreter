@@ -1,4 +1,10 @@
-// Doorkey
+/*
+Doorkey, The Monkey Derivative
+by Travis Moore
+By following "Writing an Interpreter in Go" by Thorsten Ball, https://interpreterbook.com/
+*/
+
+// Placeholder
 
 package main
 

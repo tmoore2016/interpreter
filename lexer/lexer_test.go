@@ -1,3 +1,10 @@
+/*
+Lexer Test for
+Doorkey, The Monkey Derivative
+by Travis Moore
+By following "Writing an Interpreter in Go" by Thorsten Ball, https://interpreterbook.com/
+*/
+
 // lexer/lexer_test.go
 
 package lexer
@@ -8,6 +15,7 @@ import (
 	"github.com/tmoore2016/interpreter/token"
 )
 
+// Lexer Tests
 func TestNextToken(t *testing.T) {
 	input := `
 		=+(){},;
@@ -22,6 +30,7 @@ func TestNextToken(t *testing.T) {
 		expectedType    token.TokenType
 		expectedLiteral string
 	}{
+		// =+(){},;
 		{token.ASSIGN, "="},
 		{token.PLUS, "+"},
 		{token.LPAREN, "("},
@@ -31,18 +40,21 @@ func TestNextToken(t *testing.T) {
 		{token.COMMA, ","},
 		{token.SEMICOLON, ";"},
 
+		// let five = 5;
 		{token.LET, "let"},
 		{token.IDENT, "five"},
 		{token.ASSIGN, "="},
 		{token.INT, "5"},
 		{token.SEMICOLON, ";"},
 
+		// let ten = 10;
 		{token.LET, "let"},
 		{token.IDENT, "ten"},
 		{token.ASSIGN, "="},
 		{token.INT, "10"},
 		{token.SEMICOLON, ";"},
 
+		// let add = fn(x,y){ x + y; };
 		{token.LET, "let"},
 		{token.IDENT, "add"},
 		{token.ASSIGN, "="},
@@ -60,6 +72,7 @@ func TestNextToken(t *testing.T) {
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
 
+		// let result = add (five, ten);
 		{token.LET, "let"},
 		{token.IDENT, "result"},
 		{token.ASSIGN, "="},
@@ -71,8 +84,11 @@ func TestNextToken(t *testing.T) {
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
 
-		{token.EOF, ""},
+		// description
 		//{token., },
+
+		// End of file
+		{token.EOF, ""},
 	}
 
 	l := New(input)

@@ -1,3 +1,10 @@
+/*
+Token package for
+Doorkey, The Monkey Derivative
+by Travis Moore
+By following "Writing an Interpreter in Go" by Thorsten Ball, https://interpreterbook.com/
+*/
+
 // interpreter\token\token.go
 
 package token

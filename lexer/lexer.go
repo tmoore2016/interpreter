@@ -1,3 +1,10 @@
+/*
+Lexer for
+Doorkey, The Monkey Derivative
+by Travis Moore
+By following "Writing an Interpreter in Go" by Thorsten Ball, https://interpreterbook.com/
+*/
+
 // lexer/lexer.go
 
 // Exercise: Support Unicode, "So it's left as an exercise to the reader to fully support Unicode (and emojis!) in Monkey."
