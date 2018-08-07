@@ -4,7 +4,9 @@ by Travis Moore
 By following "Writing an Interpreter in Go" by Thorsten Ball, https://interpreterbook.com/
 */
 
-// Placeholder
+/*
+Mostly placeholder. Working on the parser, tokens, and tests. Aug 6, 2018
+*/
 
 package main
 

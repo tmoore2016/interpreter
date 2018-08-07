@@ -28,10 +28,10 @@ func New(input string) *Lexer {
 	return l
 }
 
-// find the next char in the input string
+// Call the next char in the input string until there are no more.
 func (l *Lexer) readChar() {
-	if l.readPosition >= len(l.input) { // no input or end of string
-		l.ch = 0
+	if l.readPosition >= len(l.input) { // ! = no input or end of string
+		l.ch = 0 // nill
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
@@ -44,7 +44,7 @@ func (l *Lexer) readChar() {
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
-	// ignore whitespace
+	// Initialize skipping whitespace
 	l.skipWhitespace()
 
 	// the char determines the token type
@@ -67,7 +67,8 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.RBRACE, l.ch)
 	//case '':
 	//	tok = newToken(token.ASSIGN, )
-	// Null, end of file
+
+	// Nill, end of file
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -95,7 +96,7 @@ func (l *Lexer) NextToken() token.Token {
 // skipWhitespace ignores white space
 func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar()
+		l.readChar() // \r = return
 	}
 }
 
@@ -115,8 +116,8 @@ func (l *Lexer) readIdentifier() string {
 // advances the lexer's position until it encounters a non-number char
 func (l *Lexer) readNumber() string {
 	position := l.position
-	for isDigit(l.ch) {
-		l.readChar()
+	for isDigit(l.ch) { // if last character is a digit move to next char
+		l.readChar() // send last non-digit to readChar()
 	}
 	return l.input[position:l.position]
 }
@@ -126,6 +127,7 @@ Booleans for token types
 */
 
 // returns true if arg (token) is a letter, _ and $ are letters for var names
+// Too many ors?
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '$'
 }

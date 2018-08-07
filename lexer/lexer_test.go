@@ -26,10 +26,13 @@ func TestNextToken(t *testing.T) {
 		};
 		let result = add (five, ten);
 	`
+
+	// A collection of tests
 	tests := []struct {
 		expectedType    token.TokenType
 		expectedLiteral string
 	}{
+		// Test that tokens are assigned to proper character
 		// =+(){},;
 		{token.ASSIGN, "="},
 		{token.PLUS, "+"},
