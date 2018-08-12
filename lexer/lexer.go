@@ -35,7 +35,7 @@ func (l *Lexer) readChar() {
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
-	l.position = l.readPosition // always points to the last char read
+	l.position = l.readPosition // always points to the length char read
 	l.readPosition++            // always points to the next char
 }
 
@@ -47,24 +47,38 @@ func (l *Lexer) NextToken() token.Token {
 	// Initialize skipping whitespace
 	l.skipWhitespace()
 
+	// this can be generalized
 	// the char determines the token type
 	switch l.ch {
 	case '=':
 		tok = newToken(token.ASSIGN, l.ch)
-	case ';':
-		tok = newToken(token.SEMICOLON, l.ch)
 	case '(':
 		tok = newToken(token.LPAREN, l.ch)
 	case ')':
 		tok = newToken(token.RPAREN, l.ch)
+	case ';':
+		tok = newToken(token.SEMICOLON, l.ch)
 	case ',':
 		tok = newToken(token.COMMA, l.ch)
 	case '+':
 		tok = newToken(token.PLUS, l.ch)
+	case '-':
+		tok = newToken(token.MINUS, l.ch)
+	case '!':
+		tok = newToken(token.NOT, l.ch)
+	case '/':
+		tok = newToken(token.DIVIDE, l.ch)
+	case '*':
+		tok = newToken(token.MULTIPLY, l.ch)
+	case '<':
+		tok = newToken(token.LT, l.ch)
+	case '>':
+		tok = newToken(token.GT, l.ch)
 	case '{':
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+
 	//case '':
 	//	tok = newToken(token.ASSIGN, )
 
@@ -76,7 +90,7 @@ func (l *Lexer) NextToken() token.Token {
 	// default makes a check whenever l.ch is unrecognized
 	// If token is letter, get its literal and type (could be a keyword), otherwise throw error
 	default:
-		if isLetter(l.ch) {
+		if isLetter(l.ch) { // if length character is letter
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
@@ -115,9 +129,10 @@ func (l *Lexer) readIdentifier() string {
 
 // advances the lexer's position until it encounters a non-number char
 func (l *Lexer) readNumber() string {
-	position := l.position
-	for isDigit(l.ch) { // if last character is a digit move to next char
-		l.readChar() // send last non-digit to readChar()
+	position := l.position // match indexes
+	// for
+	for isDigit(l.ch) { // if index  is a digit move to next char
+		l.readChar() // send length non-digit to readChar()
 	}
 	return l.input[position:l.position]
 }
@@ -136,6 +151,8 @@ func isLetter(ch byte) bool {
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
+
+// returns true if character is one-character token
 
 // initialize the tokens
 func newToken(tokenType token.TokenType, ch byte) token.Token {

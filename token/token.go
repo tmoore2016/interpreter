@@ -28,8 +28,14 @@ const (
 	INT   = "INT"   // Integers
 
 	// Operators
-	ASSIGN = "="
-	PLUS   = "+"
+	ASSIGN   = "="
+	PLUS     = "+"
+	MINUS    = "-"
+	NOT      = "!"
+	MULTIPLY = "*"
+	DIVIDE   = "/"
+	LT       = "<"
+	GT       = ">"
 
 	// Delimiters
 	COMMA     = ","
