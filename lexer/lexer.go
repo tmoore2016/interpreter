@@ -28,7 +28,7 @@ func New(input string) *Lexer {
 	return l
 }
 
-// Call the next char in the input string until there are no more.
+// readChar returns the last char in the input string and increments to the next one until there are none left.
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) { // ! = no input or end of string
 		l.ch = 0 // nill
@@ -37,6 +37,15 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPosition // always points to the length char read
 	l.readPosition++            // always points to the next char
+}
+
+// peekChar returns the next char in the input string, but doesn't increment the position
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
 }
 
 // NextToken looks to see which is called
@@ -50,8 +59,18 @@ func (l *Lexer) NextToken() token.Token {
 	// this can be generalized
 	// the char determines the token type
 	switch l.ch {
+	// Two character checks could be abstracted into a function
+	// '=' or '=='
 	case '=':
-		tok = newToken(token.ASSIGN, l.ch)
+		// call peekChar() to check for a second '='
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.EQ, Literal: literal}
+		} else {
+			tok = newToken(token.ASSIGN, l.ch)
+		}
 	case '(':
 		tok = newToken(token.LPAREN, l.ch)
 	case ')':
@@ -64,12 +83,22 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.PLUS, l.ch)
 	case '-':
 		tok = newToken(token.MINUS, l.ch)
-	case '!':
-		tok = newToken(token.NOT, l.ch)
 	case '/':
 		tok = newToken(token.DIVIDE, l.ch)
 	case '*':
 		tok = newToken(token.MULTIPLY, l.ch)
+	// Two character checks could be abstracted into a function
+	// '!' or '!='
+	case '!':
+		// call peekChar() to check for a '='
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+		} else {
+			tok = newToken(token.NOT, l.ch)
+		}
 	case '<':
 		tok = newToken(token.LT, l.ch)
 	case '>':
