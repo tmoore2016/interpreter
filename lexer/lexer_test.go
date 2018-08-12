@@ -25,6 +25,8 @@ func TestNextToken(t *testing.T) {
 			x + y;
 		};
 		let result = add (five, ten);
+		!-/*5;
+		5 < 10 > 5;
 	`
 
 	// A collection of tests
@@ -87,8 +89,24 @@ func TestNextToken(t *testing.T) {
 		{token.RPAREN, ")"},
 		{token.SEMICOLON, ";"},
 
+		// !-/*5; Nonsense code, doesn't matter to the lexer yet
+		{token.NOT, "!"},
+		{token.MINUS, "-"},
+		{token.DIVIDE, "/"},
+		{token.MULTIPLY, "*"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+
+		// 5 < 10 > 5;
+		{token.INT, "5"},
+		{token.LT, "<"},
+		{token.INT, "10"},
+		{token.GT, ">"},
+		{token.INT, "5"},
+		{token.SEMICOLON, ";"},
+
 		// description
-		//{token., },
+		// {token., },
 
 		// End of file
 		{token.EOF, ""},
