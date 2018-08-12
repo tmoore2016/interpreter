@@ -7,5 +7,5 @@ Motivation: I am learning to program. I want to get better.
 
 Currently working on:
 
-    <s>Chapter 1: Lexing</s>
-    Chapter 2: Parsing
+~~Chapter 1: Lexing~~
+Chapter 2: Parsing
