@@ -1,3 +1,10 @@
+/*
+Read, Evaluate, Print, Loop (REPL) for
+Doorkey, a Monkey Derivative
+by Travis Moore
+By following "Writing an Interpreter in Go" by Thorsten Ball, https://interpreterbook.com/
+*/
+
 package repl
 
 import (
