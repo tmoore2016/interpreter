@@ -8,4 +8,5 @@ Motivation: I am learning to program. I want to get better.
 Currently working on:
 
 ~~Chapter 1: Lexing~~
+
 Chapter 2: Parsing
