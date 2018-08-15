@@ -41,20 +41,34 @@ func (p *Program) TokenLiteral() string {
 	}
 }
 
-// LetStatement prepares a let statement
+// LetStatement prepares a let statement node
 type LetStatement struct {
 	Token token.Token // the token.LET token
 	Name  *Identifier // call Identifier() for IDENT
 	Value Expression  // literal values
 }
 
-// StatementNode contains LetStatement
+// statementNode contains LetStatement
 func (ls *LetStatement) statementNode() {
 }
 
 // TokenLiteral returns the literal values of LetStatement's token
 func (ls *LetStatement) TokenLiteral() string {
 	return ls.Token.Literal
+}
+
+// ReturnStatement prepares a return statement node
+type ReturnStatement struct {
+	Token       token.Token // the return token
+	ReturnValue Expression
+}
+
+// statementNode contains ReturnStatement
+func (rs *ReturnStatement) statementNode() {}
+
+// TokenLiteral returns the literal values of ReturnStatement's token
+func (rs *ReturnStatement) TokenLiteral() string {
+	return rs.Token.Literal
 }
 
 // Identifier returns the identity value of token
