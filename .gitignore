@@ -4,7 +4,6 @@
 
 debug*
 
-
 # Windows thumbnail cache files
 
 Thumbs.db
@@ -50,3 +49,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 
 *.lnk
+
+# old main
+doorkey.txt
