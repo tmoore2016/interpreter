@@ -11,7 +11,7 @@ import (
 	"os"
 	"os/user"
 
-	"github.com/tmoore2016/interpreter/repl"
+	"github.com/tmoore2016/interpreter/lib/repl"
 )
 
 func main() {

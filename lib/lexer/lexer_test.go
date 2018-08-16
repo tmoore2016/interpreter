@@ -12,7 +12,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/tmoore2016/interpreter/token"
+	"github.com/tmoore2016/interpreter/lib/token"
 )
 
 // Lexer Tests

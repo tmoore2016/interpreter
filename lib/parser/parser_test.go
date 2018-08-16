@@ -10,8 +10,8 @@ package parser
 import (
 	"testing"
 
-	"github.com/tmoore2016/interpreter/ast"
-	"github.com/tmoore2016/interpreter/lexer"
+	"github.com/tmoore2016/interpreter/lib/ast"
+	"github.com/tmoore2016/interpreter/lib/lexer"
 )
 
 // TestLetStatements tests Let statements
