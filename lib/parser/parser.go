@@ -10,9 +10,9 @@ package parser
 import (
 	"fmt"
 
-	"github.com/tmoore2016/interpreter/ast"
-	"github.com/tmoore2016/interpreter/lexer"
-	"github.com/tmoore2016/interpreter/token"
+	"github.com/tmoore2016/interpreter/lib/ast"
+	"github.com/tmoore2016/interpreter/lib/lexer"
+	"github.com/tmoore2016/interpreter/lib/token"
 )
 
 // Parser structure to contain current Token and next Token from Lexer

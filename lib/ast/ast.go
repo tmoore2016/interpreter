@@ -7,7 +7,7 @@ By following "Writing an Interpreter in Go" by Thorsten Ball, https://interprete
 
 package ast
 
-import "github.com/tmoore2016/interpreter/token"
+import "github.com/tmoore2016/interpreter/lib/token"
 
 // Node in AST implements the node interface, providing a TokenLiteral() that returns the literal value its associated with for debugging and testing.
 type Node interface {

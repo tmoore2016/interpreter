@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/tmoore2016/interpreter/lexer"
-	"github.com/tmoore2016/interpreter/token"
+	"github.com/tmoore2016/interpreter/lib/lexer"
+	"github.com/tmoore2016/interpreter/lib/token"
 )
 
 // PROMPT = command prompt

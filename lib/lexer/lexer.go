@@ -11,7 +11,7 @@ By following "Writing an Interpreter in Go" by Thorsten Ball, https://interprete
 
 package lexer
 
-import "github.com/tmoore2016/interpreter/token"
+import "github.com/tmoore2016/interpreter/lib/token"
 
 // Lexer for input and pointers
 type Lexer struct {
