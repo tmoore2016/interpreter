@@ -9,10 +9,10 @@ By following "Writing an Interpreter in Go" by Thorsten Ball, https://interprete
 
 package token
 
-// TokenType Create a type of token
+// TokenType Create token types
 type TokenType string
 
-// Token TokenType is a string
+// Token literal value
 type Token struct {
 	Type    TokenType
 	Literal string

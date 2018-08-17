@@ -13,6 +13,8 @@ import (
 	"github.com/tmoore2016/interpreter/lib/token"
 )
 
+// TestString compares a handwritten AST to a string. Later, can test the output of the parser against ast.go's String()
+// let myVar = anotherVar;
 func TestString(t *testing.T) {
 	program := &Program{
 		Statements: []Statement{
