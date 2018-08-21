@@ -14,7 +14,22 @@ import (
 	"github.com/tmoore2016/interpreter/lib/lexer"
 )
 
-// TestLetStatements tests Let statements
+// checkParserErrors returns parsing errors
+func checkParserErrors(t *testing.T, p *Parser) {
+	errors := p.Errors()
+
+	if len(errors) == 0 { // exit if no errors
+		return
+	}
+
+	t.Errorf("Parser has %d errors", len(errors)) // return number of errors
+	for _, msg := range errors {
+		t.Errorf("Parser error: %q", msg) // return error message
+	}
+	t.FailNow()
+}
+
+// TestLetStatements tests integrity of input from lexer and parser.
 func TestLetStatements(t *testing.T) {
 	input :=
 
@@ -60,7 +75,36 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
-// TestReturnStatements tests return statements
+// testLetStatement must contain test case, AST statement with TokenLiteral "let", and identifier to return true.
+func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
+	if s.TokenLiteral() != "let" {
+		t.Errorf("s.TokenLiteral not 'let'. got=%q", s.TokenLiteral())
+		return false
+	}
+
+	letStmt, ok := s.(*ast.LetStatement)
+
+	if !ok {
+		t.Errorf("s not *ast.LetStatement. got=%T", s)
+		return false
+	}
+
+	// Return false if let statement doesn't contain a value
+	if letStmt.Name.Value != name {
+		t.Errorf("letStmt.Name.Value not '%s'. got=%s", name, letStmt.Name.Value)
+		return false
+	}
+
+	// Return false if let statement doesn't contain a token literal name
+	if letStmt.Name.TokenLiteral() != name {
+		t.Errorf("s.Name not '%s'. got=%s", name, letStmt.Name)
+		return false
+	}
+
+	return true
+}
+
+// TestReturnStatements tests integrity of input from lexer and parser and that it is a valid return statment node in the AST.
 func TestReturnStatements(t *testing.T) {
 	input :=
 		`
@@ -92,46 +136,36 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
-// checkParserErrors returns parsing errors
-func checkParserErrors(t *testing.T, p *Parser) {
-	errors := p.Errors()
+// TestIdentifierExpression tests that identifier is a program statement, is part of the ast, and has the correct value.
+func TestIdentifierExpression(t *testing.T) {
+	input := "moortr;"
 
-	if len(errors) == 0 { // exit if no errors
-		return
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Program hasn't got enough statements. got=%d", len(program.Statements))
 	}
 
-	t.Errorf("Parser has %d errors", len(errors)) // return number of errors
-	for _, msg := range errors {
-		t.Errorf("Parser error: %q", msg) // return error message
-	}
-	t.FailNow()
-}
-
-// testLetStatment must contain test case, AST statement with TokenLiteral "let", and identifier to return true.
-func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
-	if s.TokenLiteral() != "let" {
-		t.Errorf("s.TokenLiteral not 'let'. got=%q", s.TokenLiteral())
-		return false
-	}
-
-	letStmt, ok := s.(*ast.LetStatement)
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 
 	if !ok {
-		t.Errorf("s not *ast.LetStatement. got=%T", s)
-		return false
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got =%T", program.Statements[0])
 	}
 
-	// Return false if let statement doesn't contain a value
-	if letStmt.Name.Value != name {
-		t.Errorf("letStmt.Name.Value not '%s'. got=%s", name, letStmt.Name.Value)
-		return false
+	ident, ok := stmt.Expression.(*ast.Identifier)
+
+	if !ok {
+		t.Fatalf("Expression not *ast.Identifier. got=%T", stmt.Expression)
 	}
 
-	// Return false if let statement doesn't contain a token literal name
-	if letStmt.Name.TokenLiteral() != name {
-		t.Errorf("s.Name not '%s'. got=%s", name, letStmt.Name)
-		return false
+	if ident.Value != "moortr" {
+		t.Errorf("ident.Value not %s. got=%s", "moortr", ident.Value)
 	}
 
-	return true
+	if ident.TokenLiteral() != "moortr" {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", "moortr", ident.TokenLiteral())
+	}
 }

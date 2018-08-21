@@ -15,12 +15,26 @@ import (
 	"github.com/tmoore2016/interpreter/lib/token"
 )
 
-// Parser structure to contain current Token and next Token from Lexer
+// Parser precedence, lowest to highest
+const (
+	_           int = iota // iota assigns values in ascending order
+	LOWEST                 // lowest precedence
+	EQUALS                 // ==
+	LESSGREATER            // > or <
+	SUM                    // +
+	PRODUCT                // *
+	PREFIX                 // -X or !X
+	CALL                   // myFunction(X)
+)
+
+// Parser structure, pulls data from lexer
 type Parser struct {
-	l         *lexer.Lexer // l is the pointer
-	curToken  token.Token  // current token
-	peekToken token.Token  // next token
-	errors    []string     // error handling
+	l              *lexer.Lexer                      // l is the pointer
+	errors         []string                          // error handling
+	curToken       token.Token                       // current token's type
+	peekToken      token.Token                       // next token's type
+	prefixParseFns map[token.TokenType]prefixParseFn // hash table to compare prefix and infix expressions
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 // New Parser for lexer tokens
@@ -33,7 +47,15 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken() // set curToken
 	p.nextToken() // set peekToken
 
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn) // Initialize prefixParseFns map
+	p.registerPrefix(token.IDENT, p.parseIdentifier)           // Register a parsing function
+
 	return p
+}
+
+// parseIdentifier returns the AST identifier and its value, it doesn't advance the token or call nextToken.
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 // Errors returns parser errors
@@ -53,6 +75,41 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
+// sets the current token
+func (p *Parser) curTokenIs(t token.TokenType) bool {
+	return p.curToken.Type == t
+}
+
+// sets the next token
+func (p *Parser) peekTokenIs(t token.TokenType) bool {
+	return p.peekToken.Type == t
+}
+
+func (p *Parser) expectPeek(t token.TokenType) bool {
+	if p.peekTokenIs(t) {
+		p.nextToken()
+		return true
+	} else {
+		p.peekError(t)
+		return false
+	}
+}
+
+// Prefix and Infix parsing functions set prefix and infix expression nodes
+type (
+	prefixParseFn func() ast.Expression               // create a prefix expression
+	infixParseFn  func(ast.Expression) ast.Expression // puts the prefix expression on the left of the infix expression
+)
+
+// registerPrefix adds entries to prefixParseFns map
+func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[tokenType] = fn
+}
+
+func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
+}
+
 // ParseProgram parses the tokens to create the root node for the AST
 func (p *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
@@ -69,7 +126,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-// parseStatment checks token type
+// parseStatment checks token type to determine statement type
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	// Let statement
@@ -78,7 +135,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement() // if the statement isn't a let or a return, treat it as an expression (named var).
 	}
 }
 
@@ -109,6 +166,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	return stmt
 }
 
+// parseReturnStatement creates a return statement node
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 
@@ -124,22 +182,28 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
-// sets the current token
-func (p *Parser) curTokenIs(t token.TokenType) bool {
-	return p.curToken.Type == t
-}
+// parseExpressionStatement creates an expression node
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
-// sets the next token
-func (p *Parser) peekTokenIs(t token.TokenType) bool {
-	return p.peekToken.Type == t
-}
+	stmt.Expression = p.parseExpression(LOWEST)
 
-func (p *Parser) expectPeek(t token.TokenType) bool {
-	if p.peekTokenIs(t) {
+	if p.peekTokenIs(token.SEMICOLON) { // The expression statement continues until the next token is a ";".
 		p.nextToken()
-		return true
-	} else {
-		p.peekError(t)
-		return false
 	}
+
+	return stmt
+}
+
+// parseExpression checks if there is a parsing function associated with the current token.
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+
+	if prefix == nil {
+		return nil
+	}
+
+	leftExp := prefix()
+
+	return leftExp
 }
