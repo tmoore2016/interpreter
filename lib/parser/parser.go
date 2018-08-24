@@ -9,6 +9,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/tmoore2016/interpreter/lib/ast"
 	"github.com/tmoore2016/interpreter/lib/lexer"
@@ -48,7 +49,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.nextToken() // set peekToken
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn) // Initialize prefixParseFns map
-	p.registerPrefix(token.IDENT, p.parseIdentifier)           // Register a parsing function
+	p.registerPrefix(token.IDENT, p.parseIdentifier)           // Register an Identifier parsing function
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)         // Register an Integer Literal parsing function
 
 	return p
 }
@@ -206,4 +208,23 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	leftExp := prefix()
 
 	return leftExp
+}
+
+// parseIntegerLiteral parses integer literal expressions, returns the AST identifier and its value, it doesn't advance the token or call nextToken.
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+
+	// Convert string value to Int64
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+
+	if err != nil {
+		msg := fmt.Sprintf("Could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit.Value = value
+
+	return lit
 }
