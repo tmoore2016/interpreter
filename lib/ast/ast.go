@@ -46,12 +46,12 @@ type Identifier struct {
 func (i *Identifier) expressionNode() {
 }
 
-// TokenLiteral contains Literal value
+// TokenLiteral contains Literal type
 func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
 
-// String function for Identifier
+// String function for Identifier, return value
 func (i *Identifier) String() string {
 	return i.Value
 }
@@ -80,14 +80,14 @@ func (p *Program) TokenLiteral() string {
 type LetStatement struct {
 	Token token.Token // the token.LET token
 	Name  *Identifier // call Identifier() for IDENT
-	Value Expression  // literal values
+	Value Expression  // literal type
 }
 
 // statementNode contains LetStatement
 func (ls *LetStatement) statementNode() {
 }
 
-// TokenLiteral returns the literal values of LetStatement's token
+// TokenLiteral returns the literal type of LetStatement's token
 func (ls *LetStatement) TokenLiteral() string {
 	return ls.Token.Literal
 }
@@ -118,7 +118,7 @@ type ReturnStatement struct {
 // statementNode contains ReturnStatement
 func (rs *ReturnStatement) statementNode() {}
 
-// TokenLiteral returns the literal values of ReturnStatement's token
+// TokenLiteral returns the literal type of ReturnStatement's token
 func (rs *ReturnStatement) TokenLiteral() string {
 	return rs.Token.Literal
 }
@@ -147,7 +147,7 @@ type ExpressionStatement struct {
 // statementNode contains ExpressionStatement
 func (es *ExpressionStatement) statementNode() {}
 
-// TokenLiteral contains the literal values of ExpressionStatement
+// TokenLiteral contains the literal type of ExpressionStatement
 func (es *ExpressionStatement) TokenLiteral() string {
 	return es.Token.Literal
 }
@@ -158,4 +158,23 @@ func (es *ExpressionStatement) String() string {
 		return es.Expression.String()
 	}
 	return ""
+}
+
+// IntegerLiteral constructs an integer literal expression
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64 // value isn't a string
+}
+
+// IntegerLiteral is assigned to an AST expression node
+func (il *IntegerLiteral) expressionNode() {}
+
+// TokenLiteral contains the literal type of integer literal
+func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.Literal
+}
+
+// String writing function for IntegerLiteral
+func (il *IntegerLiteral) String() string {
+	return il.Token.Literal
 }
