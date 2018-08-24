@@ -21,6 +21,6 @@ func main() {
 	}
 
 	fmt.Printf("Hello %s! Welcome to Doorkey a Monkey derivative!\n", user.Username)
-	fmt.Printf("What can I do for you?\n")
+	fmt.Printf("I will tokenize your input and return it to you.")
 	repl.Start(os.Stdin, os.Stdout)
 }
