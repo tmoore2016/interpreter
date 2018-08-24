@@ -169,3 +169,46 @@ func TestIdentifierExpression(t *testing.T) {
 		t.Errorf("ident.TokenLiteral not %s. got=%s", "moortr", ident.TokenLiteral())
 	}
 }
+
+// TestIntegerLiteralExpression tests the lexing and parsing of integer literals
+func TestIntegerLiteralExpression(t *testing.T) {
+	// Test input
+	input := "5;"
+
+	// Call a new lexer for input, parse it, create a program statement, and test for parser errors
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	// Length of an integer literal program statement must be 1
+	if len(program.Statements) != 1 {
+		t.Fatalf("Program should only have 1 statement for integer literal expression. got=%d", len(program.Statements))
+	}
+
+	// Ok to assign the program statement to an ast expression statement node
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	// Fail if the program statement isn't an ast expression statement
+	if !ok {
+		t.Fatalf("program.Statements[0] is not an ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	// Ok if statement expression is an integer literal node
+	literal, ok := stmt.Expression.(*ast.IntegerLiteral)
+
+	// Fail if ast expression isn't an integer literal node
+	if !ok {
+		t.Fatalf("exp not *ast.IntegerLiteral. got=%T", stmt.Expression)
+	}
+
+	// Fail if the value of integer literal 5 isn't 5
+	if literal.Value != 5 {
+		t.Errorf("literal.Value not %d. got=%d", 5, literal.Value)
+	}
+
+	// Fail if the token for integer literal "5" isn't "5"
+	if literal.TokenLiteral() != "5" {
+		t.Errorf("literal.TokenLiteral not %s. got=%s", "5", literal.TokenLiteral())
+	}
+}
