@@ -160,7 +160,7 @@ func (es *ExpressionStatement) String() string {
 	return ""
 }
 
-// IntegerLiteral constructs an integer literal expression
+// IntegerLiteral structure for an integer literal expression
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64 // value isn't a string
@@ -177,4 +177,31 @@ func (il *IntegerLiteral) TokenLiteral() string {
 // String writing function for IntegerLiteral
 func (il *IntegerLiteral) String() string {
 	return il.Token.Literal
+}
+
+// PrefixExpression structure for a prefix expression
+type PrefixExpression struct {
+	Token    token.Token // The prefix token
+	Operator string      // ! or -
+	Right    Expression  // The expression to the right of the operator
+}
+
+// PrefixExpression is assigned to an AST expression node
+func (pe *PrefixExpression) expressionNode() {}
+
+// TokenLiteral contains the literal type of prefix expression
+func (pe *PrefixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+
+// String adds parentheses between the operator and the operand of a prefix expression
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
+
+	return out.String()
 }

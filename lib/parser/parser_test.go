@@ -214,9 +214,9 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
-// testIntegerLiteral is a smaller integer literal test than testIntegerLiteralExpression
+// testIntegerLiteral is a smaller integer literal test
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
-	integ, ok := il(*ast.IntegerLiteral)
+	integ, ok := il.(*ast.IntegerLiteral)
 
 	// if type isn't integerLiteral, fail
 	if !ok {
@@ -260,7 +260,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		program := p.ParseProgram()
 		checkParserErrors(t, p)
 
-		// If there is no input, fail.
+		// If there is no program statement, fail.
 		if len(program.Statements) != 1 {
 			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", l, len(program.Statements))
 		}
