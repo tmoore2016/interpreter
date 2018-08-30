@@ -260,7 +260,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		program := p.ParseProgram()
 		checkParserErrors(t, p)
 
-		// If there is no input, fail.
+		// If there is no program statement, fail.
 		if len(program.Statements) != 1 {
 			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", l, len(program.Statements))
 		}
