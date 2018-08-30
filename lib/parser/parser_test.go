@@ -214,9 +214,9 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
-// testIntegerLiteral is a smaller integer literal test than testIntegerLiteralExpression
+// testIntegerLiteral is a smaller integer literal test
 func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
-	integ, ok := il(*ast.IntegerLiteral)
+	integ, ok := il.(*ast.IntegerLiteral)
 
 	// if type isn't integerLiteral, fail
 	if !ok {
