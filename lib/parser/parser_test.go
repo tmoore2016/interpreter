@@ -262,7 +262,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 
 		// If there is no program statement, fail.
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", l, len(program.Statements))
+			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
 		}
 
 		// If program statement 0 is not an AST expression statement, fail
