@@ -51,7 +51,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn) // Initialize prefixParseFns map
 	p.registerPrefix(token.IDENT, p.parseIdentifier)           // Register an Identifier parsing function
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)         // Register an Integer Literal parsing function
-
+	p.registerPrefix(token.NOT, p.parsePrefixExpression)       // Register a ! prefix expression
+	p.registerPrefix(token.MINUS, p.parsePrefixExpression)     // Register a - prefix expression
 	return p
 }
 
@@ -87,6 +88,7 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
+// expectPeek confirmst that peekToken equals nextToken, or throws peekError
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
@@ -234,4 +236,20 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 	msg := fmt.Sprintf("No prefix parse function for %s found", t) // If there isn't a valid prefix expression type, throw an error and return the actual type.
 	p.errors = append(p.errors, msg)                               // Append error message to parser errors
+}
+
+// parsePrefixExpression parses ! and - prefixes, and their associated expressions
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token:    p.curToken,
+		Operator: p.curToken.Literal,
+	}
+
+	// Advance parser to next token after prefix
+	p.nextToken()
+
+	// Applies the nextToken's ast node to the right side of the prefix expression
+	expression.Right = p.parseExpression(PREFIX)
+
+	return expression
 }
