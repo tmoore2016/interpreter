@@ -287,3 +287,67 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		}
 	}
 }
+
+// TestParsingInfixExpressions tests parsing of infix expressions
+func TestParsingInfixExpressions(t *testing.T) {
+	infixTests := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{
+		// Input string, left value, operator, right value
+		{"5 + 5;", 5, "+", 5},
+		{"5 - 5;", 5, "-", 5},
+		{"5 * 5;", 5, "*", 5},
+		{"5 / 5;", 5, "/", 5},
+		{"5 > 5;", 5, ">", 5},
+		{"5 < 5;", 5, "<", 5},
+		{"5 == 5;", 5, "==", 5},
+		{"5 != 5;", 5, "!=", 5},
+	}
+
+	// For the current input in the range of inputs, create a program statement
+	for _, tt := range infixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		// Test that each input is 1 program statement
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+		}
+
+		// OK if program statement has an ast expression statement
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+		// Fails if program statement has no ast expression statement
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		// OK if the expression statement (+) is an ast infix expression statement
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+
+		// Fails if the expression statement (+) isn't an ast infix expression statement
+		if !ok {
+			t.Fatalf("exp is not ast.InfixExpression. got=%T", stmt.Expression)
+		}
+
+		// Fails if left expression statement isn't an integer literal
+		if !testIntegerLiteral(t, exp.Left, tt.leftValue) {
+			return
+		}
+
+		// Fails if current expression operator != program statement expression operator
+		if exp.Operator != tt.operator {
+			t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
+		}
+
+		// Fails if right expression statement isn't an integer value
+		if !testIntegerLiteral(t, exp.Right, tt.rightValue) {
+			return
+		}
+	}
+}
