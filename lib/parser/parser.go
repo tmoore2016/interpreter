@@ -28,6 +28,18 @@ const (
 	CALL                   // myFunction(X)
 )
 
+// Assigns parser precedence to tokens
+var precedences = map[token.TokenType]int{
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.DIVIDE:   PRODUCT,
+	token.MULTIPLY: PRODUCT,
+}
+
 // Parser structure, pulls data from lexer
 type Parser struct {
 	l              *lexer.Lexer                      // l is the pointer
@@ -36,6 +48,24 @@ type Parser struct {
 	peekToken      token.Token                       // next token's type
 	prefixParseFns map[token.TokenType]prefixParseFn // hash table to compare prefix and infix expressions
 	infixParseFns  map[token.TokenType]infixParseFn
+}
+
+// peekPrecedence returns the lowest precedence operator in peek token
+func (p *Parser) peekPrecedence() int {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+
+	return LOWEST
+}
+
+// curPrecedence returns the lowest precedence operator for current token
+func (p *Parser) curPrecedence() int {
+	if p, ok := precedences[p.curToken.Type]; ok {
+		return p
+	}
+
+	return LOWEST
 }
 
 // New Parser for lexer tokens
