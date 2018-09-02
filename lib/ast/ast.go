@@ -205,3 +205,31 @@ func (pe *PrefixExpression) String() string {
 
 	return out.String()
 }
+
+// InfixExpression structure for an infix expression
+type InfixExpression struct {
+	Token    token.Token // The infix operator token, '+'
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+// InfixExpression is assigned to an ast expression node
+func (oe *InfixExpression) expressionNode() {} // operator expression
+
+// TokenLiteral contains the literal type of the infix expression
+func (oe *InfixExpression) TokenLiteral() string {
+	return oe.Token.Literal
+}
+
+// Write the entire infix expression to a string
+func (oe *InfixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(oe.Left.String())        // Left operand expression
+	out.WriteString(" " + oe.Operator + " ") // Infix operator
+	out.WriteString(oe.Right.String())       // Right operand expression
+	out.WriteString(")")
+
+	return out.String()
+}
