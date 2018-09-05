@@ -83,6 +83,17 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)         // Register an Integer Literal parsing function
 	p.registerPrefix(token.NOT, p.parsePrefixExpression)       // Register a ! prefix expression
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)     // Register a - prefix expression
+
+	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expressions
+	p.registerInfix(token.PLUS, p.parseInfixExpression)
+	p.registerInfix(token.MINUS, p.parseInfixExpression)
+	p.registerInfix(token.DIVIDE, p.parseInfixExpression)
+	p.registerInfix(token.MULTIPLY, p.parseInfixExpression)
+	p.registerInfix(token.EQ, p.parseInfixExpression)
+	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
+	p.registerInfix(token.LT, p.parseInfixExpression)
+	p.registerInfix(token.GT, p.parseInfixExpression)
+
 	return p
 }
 
@@ -240,6 +251,18 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 	leftExp := prefix() // assigns prefix expression to left expression.
 
+	// Check for infix parsing functions
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() { // Token is not a ';' and current precedence is lower than peek precedence
+		infix := p.infixParseFns[p.peekToken.Type]
+		if infix == nil {
+			return leftExp // if not an infix expression, left expression
+		}
+
+		p.nextToken() // advance to next token
+
+		leftExp = infix(leftExp) // append infix expression to left expression and continue looping
+	}
+
 	return leftExp
 }
 
@@ -262,12 +285,6 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
-// noPrefixParseFnError appends invalid type information for prefix expressions to parser errors
-func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("No prefix parse function for %s found", t) // If there isn't a valid prefix expression type, throw an error and return the actual type.
-	p.errors = append(p.errors, msg)                               // Append error message to parser errors
-}
-
 // parsePrefixExpression parses ! and - prefixes, and their associated expressions
 func (p *Parser) parsePrefixExpression() ast.Expression {
 	expression := &ast.PrefixExpression{
@@ -280,6 +297,29 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 
 	// Applies the nextToken's ast node to the right side of the prefix expression
 	expression.Right = p.parseExpression(PREFIX)
+
+	return expression
+}
+
+// noPrefixParseFnError appends invalid type information for prefix expressions to parser errors
+func (p *Parser) noPrefixParseFnError(t token.TokenType) {
+	msg := fmt.Sprintf("No prefix parse function for %s found", t) // If there isn't a valid prefix expression type, throw an error and return the actual type.
+	p.errors = append(p.errors, msg)                               // Append error message to parser errors
+}
+
+// parseInfixExpression creates an infix expression node
+func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+
+	expression := &ast.InfixExpression{ // & points the product to ast.InfixExpresssion
+
+		Token:    p.curToken,         // Set token to current token
+		Operator: p.curToken.Literal, // set operator to literal
+		Left:     left,               // set local left to ast expression left
+	}
+
+	precedence := p.curPrecedence()                  // set precedence to current expression, the infix operator
+	p.nextToken()                                    // move to next token
+	expression.Right = p.parseExpression(precedence) // add right field to infix expression
 
 	return expression
 }
