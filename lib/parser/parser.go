@@ -227,32 +227,32 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
-// parseExpressionStatement creates an expression node
+// parseExpressionStatement creates expression nodes
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
-	stmt.Expression = p.parseExpression(LOWEST)
+	stmt.Expression = p.parseExpression(LOWEST) // First precedence expression statement
 
-	if p.peekTokenIs(token.SEMICOLON) { // The expression statement continues until the next token is a ";".
+	if p.peekTokenIs(token.SEMICOLON) { // The expression statement continues until the next token is a ";"
 		p.nextToken()
 	}
 
 	return stmt
 }
 
-// parseExpression checks if there is a parsing function associated with the current token.
-func (p *Parser) parseExpression(precedence int) ast.Expression {
-	prefix := p.prefixParseFns[p.curToken.Type]
+// parseExpression checks if there is a parsing function associated with the current token and assigns it to left expression
+func (p *Parser) parseExpression(precedence int) ast.Expression { // Precedence defaults to LOWEST unless a higher precedence is passed from parseInfixExpression
+	prefix := p.prefixParseFns[p.curToken.Type] // Checks if there is a prefixParseFn associated with the token type, (i.e. "1 + 2 + 3;", the 1 is an integer literal expression, so it calls parseIntegerLiteral)
 
 	if prefix == nil {
 		p.noPrefixParseFnError(p.curToken.Type) // calls noPrefixParseFnError if prefix type is nil
 		return nil
 	}
 
-	leftExp := prefix() // assigns prefix expression to left expression.
+	leftExp := prefix() // assigns prefix expression to left expression
 
-	// Check for infix parsing functions
-	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() { // Token is not a ';' and current precedence is lower than peek precedence
+	// Check if the next token is higher precedence than the current left expression, if it is assign the new left expression, continue until the next expression is not higher precedence or a ';' (i.e. "1 + 2 + 3;", the first time "1 +" it loops, the second time through "2 +" it doesn't and ast.IntegerLiteral 2 is returned
+	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() { // Token is not a ';' and current left expression precedence is lower than peek precedence
 		infix := p.infixParseFns[p.peekToken.Type]
 		if infix == nil {
 			return leftExp // if not an infix expression, left expression
@@ -260,13 +260,13 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 
 		p.nextToken() // advance to next token
 
-		leftExp = infix(leftExp) // append infix expression to left expression and continue looping
+		leftExp = infix(leftExp) // apply the new infix expression to left expression and call parseInfixExpression
 	}
 
 	return leftExp
 }
 
-// parseIntegerLiteral parses integer literal expressions, returns the AST identifier and its value, it doesn't advance the token or call nextToken.
+// parseIntegerLiteral parses integer literal expressions from parseExpression, returns the AST identifier and its value, converting the string into an integer, it doesn't advance the token or call nextToken
 func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	lit := &ast.IntegerLiteral{Token: p.curToken}
@@ -314,12 +314,12 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 		Token:    p.curToken,         // Set token to current token
 		Operator: p.curToken.Literal, // set operator to literal
-		Left:     left,               // set local left to ast expression left
+		Left:     left,               // set local left to ast expression left from parsePrefixExpression (i.e. "1 + 2 + 3;" the 1)
 	}
 
-	precedence := p.curPrecedence()                  // set precedence to current expression, the infix operator
+	precedence := p.curPrecedence()                  // saves precedence of the current token, i.e. ("1 + 2 + 3;" the first +)
 	p.nextToken()                                    // move to next token
-	expression.Right = p.parseExpression(precedence) // add right field to infix expression
+	expression.Right = p.parseExpression(precedence) // add right field to infix expression from parseExpression, (i.e. "1 + 2 + 3;", the 2)
 
 	return expression
 }
