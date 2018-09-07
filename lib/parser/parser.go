@@ -251,7 +251,8 @@ func (p *Parser) parseExpression(precedence int) ast.Expression { // Precedence 
 
 	leftExp := prefix() // assigns prefix expression to left expression
 
-	// Check if the next token is higher precedence than the current left expression, if it is assign the new left expression, continue until the next expression is not higher precedence or a ';' (i.e. "1 + 2 + 3;", the first time "1 +" it loops, the second time through "2 +" it doesn't and ast.IntegerLiteral 2 is returned
+	// Check if the next token is higher precedence than the current left expression, if it is assign the new left expression, continue until the next expression is not higher precedence or a ';'
+	// (i.e. "1 + 2 + 3;", the first round "1 +" loops and ast.IntegerLiteral left is "1", the second round "2 +" it doesn't because the first +'s precedence is still applied and astIntegerLiteral left is "2", the third time it does loop because the second + is higher precedence than 2 and ast.InfixExpression "1 + 2" is returned, the fourth time astIntegerLiteral left is 3 and ; is the peektoken, stopping the loop.
 	for !p.peekTokenIs(token.SEMICOLON) && precedence < p.peekPrecedence() { // Token is not a ';' and current left expression precedence is lower than peek precedence
 		infix := p.infixParseFns[p.peekToken.Type]
 		if infix == nil {
@@ -314,7 +315,7 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 		Token:    p.curToken,         // Set token to current token
 		Operator: p.curToken.Literal, // set operator to literal
-		Left:     left,               // set local left to ast expression left from parsePrefixExpression (i.e. "1 + 2 + 3;" the 1)
+		Left:     left,               // set local left to ast expression left from parsePrefixExpression (i.e. "1 + 2 + 3;" first the 1, then 2, then 1 + 2)
 	}
 
 	precedence := p.curPrecedence()                  // saves precedence of the current token, i.e. ("1 + 2 + 3;" the first +)
