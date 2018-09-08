@@ -48,7 +48,7 @@ func (l *Lexer) peekChar() byte {
 	}
 }
 
-// NextToken looks to see which is called
+// NextToken peeks at the next token, peekToken
 // Could be a Loop that calls a text file
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
