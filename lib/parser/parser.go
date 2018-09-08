@@ -273,7 +273,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 
 	// Convert string value to Int64
-	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64) // call the parser's current token's literal value
 
 	if err != nil {
 		msg := fmt.Sprintf("Could not parse %q as integer", p.curToken.Literal)
