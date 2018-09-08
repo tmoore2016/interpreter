@@ -64,11 +64,11 @@ func (p *Parser) curPrecedence() int {
 	if p, ok := precedences[p.curToken.Type]; ok {
 		return p
 	}
-
+	// Precedence defaults to lowest.
 	return LOWEST
 }
 
-// New Parser for lexer tokens
+// New Parser for lexer's tokens
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l:      l,

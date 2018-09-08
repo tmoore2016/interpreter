@@ -48,7 +48,7 @@ func (l *Lexer) peekChar() byte {
 	}
 }
 
-// NextToken peeks at the next token, peekToken
+// NextToken looks to see which is called
 // Could be a Loop that calls a text file
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
@@ -66,11 +66,12 @@ func (l *Lexer) NextToken() token.Token {
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + string(l.ch)
+			literal := string(ch) + string(l.ch) // its literal value ';'
 			tok = token.Token{Type: token.EQ, Literal: literal}
 		} else {
 			tok = newToken(token.ASSIGN, l.ch)
 		}
+	// Assign tokens to input
 	case '(':
 		tok = newToken(token.LPAREN, l.ch)
 	case ')':
@@ -170,7 +171,7 @@ func (l *Lexer) readNumber() string {
 Booleans for token types
 */
 
-// returns true if arg (token) is a letter, _ and $ are letters for var names
+// returns true if token is 1 byte string, _ and $ are letters for var names
 // Too many ors?
 func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_' || ch == '$'
@@ -183,7 +184,7 @@ func isDigit(ch byte) bool {
 
 // returns true if character is one-character token
 
-// initialize the tokens
+// initialize the tokens, they are 1 byte Type string
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
 }
