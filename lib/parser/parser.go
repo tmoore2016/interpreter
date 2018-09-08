@@ -64,11 +64,11 @@ func (p *Parser) curPrecedence() int {
 	if p, ok := precedences[p.curToken.Type]; ok {
 		return p
 	}
-
+	// Precedence defaults to lowest.
 	return LOWEST
 }
 
-// New Parser for lexer tokens
+// New Parser for lexer's tokens
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
 		l:      l,
@@ -273,7 +273,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 
 	// Convert string value to Int64
-	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64) // call the parser's current token's literal value
 
 	if err != nil {
 		msg := fmt.Sprintf("Could not parse %q as integer", p.curToken.Literal)
