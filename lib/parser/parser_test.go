@@ -30,47 +30,39 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.FailNow()
 }
 
-// TestLetStatements tests integrity of input from lexer and parser.
+// testLetStatements tests integrity of input from lexer and parser for let statements.
 func TestLetStatements(t *testing.T) {
-	input :=
-
-		// Test input for let
-		`
-		let x = 5;
-		let y = 10;
-		let team = Broncos;
-		`
-
-	// Call a new lexer and parser
-	l := lexer.New(input)
-	p := New(l)
-
-	// Throw error if program is empty
-	program := p.ParseProgram()
-	checkParserErrors(t, p) // Initialize parser error checking
-	if program == nil {
-		t.Fatalf("ParseProgram() returned nil")
-	}
-
-	// Throw error if program doesn't contain 3 statements (token, name, value)
-	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 statements. got=%d", len(program.Statements))
-	}
-
-	// input for tests
 	tests := []struct {
-		// Test that identifiers are being set
+		input              string
 		expectedIdentifier string
+		expectedValue      interface{}
 	}{
-		{"x"},
-		{"y"},
-		{"team"},
+		{"let x = 5;", "x", 5},
+		{"let y = true;", "y", "true"},
+		{"let team = broncos;", "team", "broncos"},
 	}
 
-	// loop through each test case, add each entry as a program statement
-	for i, tt := range tests {
-		stmt := program.Statements[i]
+	for _, tt := range tests {
+
+		// Call a new lexer and parser
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p) // Initialize parser error checking
+
+		// Throw error if program doesn't contain 1 statement with (token, name, value)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain 1 statement. got=%d",
+				len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
+			return
+		}
+
+		val := stmt.(*ast.LetStatement).Value
+		if !testLiteralExpression(t, val, tt.expectedValue) {
 			return
 		}
 	}
@@ -219,13 +211,14 @@ func TestParsingPrefixExpressions(t *testing.T) {
 
 	// Declare input types, prevents having to rewrite the same test for new input.
 	prefixTests := []struct {
-		input        string
-		operator     string
-		integerValue int64
+		input    string
+		operator string
+		value    interface{}
 	}{
 		// Each set of input
 		{"!8;", "!", 8},
 		{"-16;", "-", 16},
+		{"!team;", "!", "team"},
 	}
 
 	// for the range of input, call a new lexer, parse the information, and run a parser check.
@@ -257,7 +250,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 			t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
 		}
 
-		if !testIntegerLiteral(t, exp.Right, tt.integerValue) {
+		if !testLiteralExpression(t, exp.Right, tt.value) {
 			return
 		}
 	}
@@ -441,11 +434,7 @@ func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
 }
 
 // testLiteralExpression identifies the expression type and calls the corresponding test function
-func testLiteralExpression(
-	t *testing.T,
-	exp ast.Expression,
-	expected interface{},
-) bool {
+func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) bool {
 
 	switch v := expected.(type) {
 
@@ -468,13 +457,7 @@ func testLiteralExpression(
 }
 
 // testInfixExpression is a generalized function to test infix expressions, if the expression doesn't match the ast.OperatorExpression and left, operator, and right values aren't identical to AST it fails.
-func testInfixExpression(
-	t *testing.T,
-	exp ast.Expression,
-	left interface{},
-	operator string,
-	right interface{},
-) bool {
+func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) bool {
 
 	opExp, ok := exp.(*ast.InfixExpression)
 
