@@ -84,7 +84,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.NOT, p.parsePrefixExpression)       // Register a ! prefix expression
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)     // Register a - prefix expression
 
-	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expressions
+	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
 	p.registerInfix(token.MINUS, p.parseInfixExpression)
 	p.registerInfix(token.DIVIDE, p.parseInfixExpression)
@@ -229,6 +229,9 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 // parseExpressionStatement creates expression nodes
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+
+	defer untrace(trace("parseExpressionStatement")) // Call parser_tracing to follow this expression
+
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 
 	stmt.Expression = p.parseExpression(LOWEST) // First precedence expression statement
@@ -242,6 +245,9 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 
 // parseExpression checks if there is a parsing function associated with the current token and assigns it to left expression
 func (p *Parser) parseExpression(precedence int) ast.Expression { // Precedence defaults to LOWEST unless a higher precedence is passed from parseInfixExpression
+
+	defer untrace(trace("parseExpression")) // Call parser_tracing to follow this expression, defer doesn't execute until the surrounding function returns.
+
 	prefix := p.prefixParseFns[p.curToken.Type] // Checks if there is a prefixParseFn associated with the token type, (i.e. "1 + 2 + 3;", the 1 is an integer literal expression, so it calls parseIntegerLiteral)
 
 	if prefix == nil {
@@ -270,6 +276,8 @@ func (p *Parser) parseExpression(precedence int) ast.Expression { // Precedence 
 // parseIntegerLiteral parses integer literal expressions from parseExpression, returns the AST identifier and its value, converting the string into an integer, it doesn't advance the token or call nextToken
 func (p *Parser) parseIntegerLiteral() ast.Expression {
 
+	defer untrace(trace("parseIntegerLiteral")) // Call parser_tracing to follow this expression
+
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 
 	// Convert string value to Int64
@@ -288,6 +296,9 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 // parsePrefixExpression parses ! and - prefixes, and their associated expressions
 func (p *Parser) parsePrefixExpression() ast.Expression {
+
+	defer untrace(trace("parsePrefixExpression")) // Call parser_tracing to follow this expression
+
 	expression := &ast.PrefixExpression{
 		Token:    p.curToken,
 		Operator: p.curToken.Literal,
@@ -310,6 +321,8 @@ func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 
 // parseInfixExpression creates an infix expression node
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+
+	defer untrace(trace("parseInfixExpression")) // Call parser_tracing to follow this expression
 
 	expression := &ast.InfixExpression{ // & points the product to ast.InfixExpresssion
 

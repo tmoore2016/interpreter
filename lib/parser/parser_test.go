@@ -214,31 +214,6 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
-// testIntegerLiteral is a smaller integer literal test
-func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
-	integ, ok := il.(*ast.IntegerLiteral)
-
-	// if type isn't integerLiteral, fail
-	if !ok {
-		t.Errorf("il not *ast.IntegerLiteral. got=%T", il)
-		return false
-	}
-
-	// if value != input value, fail
-	if integ.Value != value {
-		t.Errorf("integ.Value not %d. got=%d", value, integ.Value)
-		return false
-	}
-
-	// If token literal doesn't include a type and a value, fail.
-	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
-		t.Errorf("integ.TokenLiteral not %d. got=%s", value, integ.TokenLiteral())
-		return false
-	}
-
-	return true
-}
-
 // TestParsingPrefixExpressions will test prefix expressions ! and -
 func TestParsingPrefixExpressions(t *testing.T) {
 
@@ -415,4 +390,111 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			t.Errorf("expected=%q, got=%q", tt.expected, actual)
 		}
 	}
+}
+
+// testIntegerLiteral is generalized integer literal test to verify the current integerLiteral matches its ast.Expression, has the same token type and literal value
+func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
+	integ, ok := il.(*ast.IntegerLiteral)
+
+	// if type isn't integerLiteral, fail
+	if !ok {
+		t.Errorf("il not *ast.IntegerLiteral. got=%T", il)
+		return false
+	}
+
+	// if value != input value, fail
+	if integ.Value != value {
+		t.Errorf("integ.Value not %d. got=%d", value, integ.Value)
+		return false
+	}
+
+	// If token literal doesn't include a type and a value, fail.
+	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {
+		t.Errorf("integ.TokenLiteral not %d. got=%s", value, integ.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+// testIdentifier is a more generalized function to verify the current identifier matches its ast.Expression, has the same token type and literal value
+func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
+
+	ident, ok := exp.(*ast.Identifier)
+
+	if !ok {
+		t.Errorf("exp not *ast.Identifier. got=%T", exp)
+		return false
+	}
+
+	if ident.Value != value {
+		t.Errorf("ident.Value not %s. got=%s", value, ident.Value)
+		return false
+	}
+
+	if ident.TokenLiteral() != value {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", value, ident.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+// testLiteralExpression identifies the expression type and calls the corresponding test function
+func testLiteralExpression(
+	t *testing.T,
+	exp ast.Expression,
+	expected interface{},
+) bool {
+
+	switch v := expected.(type) {
+
+	// call testIntegerLiteral if expression type is an int
+	case int:
+		return testIntegerLiteral(t, exp, int64(v))
+
+	// call testIntegerLiteral if expression type is an int64
+	case int64:
+		return testIntegerLiteral(t, exp, v)
+
+	// call testIdentifier if expression type is string
+	case string:
+		return testIdentifier(t, exp, v)
+	}
+
+	// Throw error if expression type isn't an int or string
+	t.Errorf("type of exp not handled. got=%T", exp)
+	return false
+}
+
+// testInfixExpression is a generalized function to test infix expressions, if the expression doesn't match the ast.OperatorExpression and left, operator, and right values aren't identical to AST it fails.
+func testInfixExpression(
+	t *testing.T,
+	exp ast.Expression,
+	left interface{},
+	operator string,
+	right interface{},
+) bool {
+
+	opExp, ok := exp.(*ast.InfixExpression)
+
+	if !ok {
+		t.Errorf("exp is not ast.OperatorExpression. got =%T(%s)", exp, exp)
+		return false
+	}
+
+	if !testLiteralExpression(t, opExp.Left, left) {
+		return false
+	}
+
+	if opExp.Operator != operator {
+		t.Errorf("exp.Operator is not '%s'. got=%q", operator, opExp.Operator)
+		return false
+	}
+
+	if !testLiteralExpression(t, opExp.Right, right) {
+		return false
+	}
+
+	return true
 }
