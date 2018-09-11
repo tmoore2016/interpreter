@@ -233,3 +233,22 @@ func (oe *InfixExpression) String() string {
 
 	return out.String()
 }
+
+// Boolean structure for Boolean values
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+// expressionNode receives Boolean to create an AST node
+func (b *Boolean) expressionNode() {}
+
+// TokenLiteral receives Boolean for tokenization
+func (b *Boolean) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+// Boolean is sent to String function for documentation
+func (b *Boolean) String() string {
+	return b.Token.Literal
+}
