@@ -77,7 +77,7 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
-/* Generalized 'let' test, this test fails, input expression is nil
+/* Generalized 'let' test, this test fails, input expression returns nil
 // testLetStatements tests integrity of input from lexer and parser for let statements.
 func TestLetStatements(t *testing.T) {
 	tests := []struct {
@@ -228,7 +228,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 		t.Fatalf("Program should only have 1 statement for integer literal expression. got=%d", len(program.Statements))
 	}
 
-	// Ok to assign the program statement to an ast expression statement node
+	// Ok if program statement can be assigned to an ast expression statement node
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 
 	// Fail if the program statement isn't an ast expression statement
@@ -257,7 +257,6 @@ func TestIntegerLiteralExpression(t *testing.T) {
 
 // TestParsingPrefixExpressions will test prefix expressions ! and -
 func TestParsingPrefixExpressions(t *testing.T) {
-
 	// Declare input types, prevents having to rewrite the same test for new input.
 	prefixTests := []struct {
 		input    string
@@ -376,12 +375,12 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}{
 		// input values for testing operator precedence
 		{
-			"-a * b",     // expected string
-			"((-a) * b)", // actual string
+			"-a * b",     // input string
+			"((-a) * b)", // expected string
 		},
 		{
-			"!-a",     // expected string
-			"(!(-a))", // actual string
+			"!-a",     // input string
+			"(!(-a))", // expected string
 		},
 		{
 			"a + b + c",
@@ -502,6 +501,10 @@ func testLiteralExpression(
 	// call testIdentifier if expression type is string
 	case string:
 		return testIdentifier(t, exp, v)
+
+	// call testIdentifier if expression type is bool
+	case bool:
+		return testBooleanLiteral(t, exp, v)
 	}
 
 	// Throw error if expression type isn't an int or string
@@ -529,6 +532,74 @@ func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, ope
 	}
 
 	if !testLiteralExpression(t, opExp.Right, right) {
+		return false
+	}
+
+	return true
+}
+
+func TestBooleanExpression(t *testing.T) {
+	// Test input
+	tests := []struct {
+		input           string
+		expectedBoolean bool
+	}{
+		// input values for testing operator precedence
+		{"true;", true},   // expected string
+		{"false;", false}, // value
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		// Length of program statement must be 1
+		if len(program.Statements) != 1 {
+			t.Fatalf("Program should only have 1 statement for integer literal expression. got=%d", len(program.Statements))
+		}
+
+		// Ok if program statement can be assigned to an ast expression statement node
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		// Fail if the program statement isn't an ast expression statement
+		if !ok {
+			t.Fatalf("program.Statements[0] is not an ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		// Ok if statement expression is an integer literal node
+		boolean, ok := stmt.Expression.(*ast.Boolean)
+		// Fail if ast expression isn't an integer literal node
+		if !ok {
+			t.Fatalf("exp not *ast.Boolean. got=%T", stmt.Expression)
+		}
+
+		// Fail if the value of integer literal 5 isn't 5
+		if boolean.Value != tt.expectedBoolean {
+			t.Errorf("boolean.Value not %t. got=%t", tt.expectedBoolean, boolean.Value)
+		}
+	}
+}
+
+// testBooleanLiteral is generalized Boolean test to verify the current Boolean matches its ast.Expression, has the same token type and literal value
+func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
+	bo, ok := exp.(*ast.Boolean)
+
+	// if type isn't Boolean, fail
+	if !ok {
+		t.Errorf("exp not *ast.Boolean. got=%T", exp)
+		return false
+	}
+
+	// if value != input value, fail
+	if bo.Value != value {
+		t.Errorf("bo.Value not %t. got=%t", value, bo.Value)
+		return false
+	}
+
+	// If token literal doesn't include a type and a value, fail.
+	if bo.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("bo.TokenLiteral not %t. got=%s", value, bo.TokenLiteral())
 		return false
 	}
 
