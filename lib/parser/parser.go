@@ -83,6 +83,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)         // Register an Integer Literal parsing function
 	p.registerPrefix(token.NOT, p.parsePrefixExpression)       // Register a ! prefix expression
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)     // Register a - prefix expression
+	p.registerPrefix(token.TRUE, p.parseBoolean)               // Register a TRUE prefix expression
+	p.registerPrefix(token.FALSE, p.parseBoolean)              // Register a False prefix expression
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -151,6 +153,7 @@ func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 	p.prefixParseFns[tokenType] = fn
 }
 
+// registerInfix adds entries to infixParseFns map
 func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
 }
@@ -171,7 +174,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-// parseStatment checks token type to determine statement type
+// parseStatement checks token type to determine statement type
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	// Let statement
@@ -196,7 +199,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	// Uses the identifier to create an AST identifier node
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
-	// let statment expects a assignment (=)
+	// let statement expects a assignment (=)
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}
@@ -281,7 +284,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 
 	// Convert string value to Int64
-	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64) // call the parser's current token's literal value
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64) // call the parser's current token's literal value and convert to integer
 
 	if err != nil {
 		msg := fmt.Sprintf("Could not parse %q as integer", p.curToken.Literal)
@@ -293,6 +296,34 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 	return lit
 }
+
+// parseBoolean parses boolean expressions from parseExpression, returns the AST identifier and its value, converts the string into an integer, and returns the new token type. It doesn't advance the token or call nextToken.
+func (p *Parser) parseBoolean() ast.Expression {
+
+	defer untrace(trace("parseBoolean")) // Call parser_tracing to follow this expression
+
+	boo := &ast.Boolean{Token: p.curToken}
+
+	// Convert string value to Boolean
+	value, err := strconv.ParseBool(p.curToken.Literal) // call the parser's current token's literal value and convert to integer
+
+	if err != nil {
+		msg := fmt.Sprintf("Could not parse %q as Boolean", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	boo.Value = value
+
+	return boo
+}
+
+/*
+// ParseBoolean function from the book, boolean is inlined(?). I rewrote this following the parseIntegerLiteral function that converts the string to another type.
+func (p *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
+}
+*/
 
 // parsePrefixExpression parses ! and - prefixes, and their associated expressions
 func (p *Parser) parsePrefixExpression() ast.Expression {
