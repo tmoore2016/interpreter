@@ -308,9 +308,9 @@ func TestParsingPrefixExpressions(t *testing.T) {
 func TestParsingInfixExpressions(t *testing.T) {
 	infixTests := []struct {
 		input      string
-		leftValue  int64
+		leftValue  interface{}
 		operator   string
-		rightValue int64
+		rightValue interface{}
 	}{
 		// Input string, left value, operator, right value
 		{"5 + 5;", 5, "+", 5},
@@ -321,6 +321,10 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 < 5;", 5, "<", 5},
 		{"5 == 5;", 5, "==", 5},
 		{"5 != 5;", 5, "!=", 5},
+
+		{"true == true", true, "==", true},
+		{"true != false", true, "!=", false},
+		{"false == false", false, "==", false},
 	}
 
 	// For the current input in the range of inputs, create a program statement
@@ -337,32 +341,12 @@ func TestParsingInfixExpressions(t *testing.T) {
 
 		// OK if program statement has an ast expression statement
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-
 		// Fails if program statement has no ast expression statement
 		if !ok {
 			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
 		}
 
-		// OK if the expression statement (+) is an ast infix expression statement
-		exp, ok := stmt.Expression.(*ast.InfixExpression)
-
-		// Fails if the expression statement (+) isn't an ast infix expression statement
-		if !ok {
-			t.Fatalf("exp is not ast.InfixExpression. got=%T", stmt.Expression)
-		}
-
-		// Fails if left expression statement isn't an integer literal
-		if !testIntegerLiteral(t, exp.Left, tt.leftValue) {
-			return
-		}
-
-		// Fails if current expression operator != program statement expression operator
-		if exp.Operator != tt.operator {
-			t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
-		}
-
-		// Fails if right expression statement isn't an integer value
-		if !testIntegerLiteral(t, exp.Right, tt.rightValue) {
+		if !testInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue) {
 			return
 		}
 	}
