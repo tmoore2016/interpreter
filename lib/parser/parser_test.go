@@ -322,6 +322,15 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"5 == 5;", 5, "==", 5},
 		{"5 != 5;", 5, "!=", 5},
 
+		{"Sea + Wolf", "Sea", "+", "Wolf"},
+		{"Monte - Cristo", "Monte", "-", "Cristo"},
+		{"Gotrek * Felix", "Gotrek", "*", "Felix"},
+		{"Don / Quixote", "Don", "/", "Quixote"},
+		{"Love > Hate", "Love", ">", "Hate"},
+		{"Fiction < Truth", "Fiction", "<", "Truth"},
+		{"Left == Right", "Left", "==", "Right"},
+		{"Friend != Enemy", "Friend", "!=", "Enemy"},
+
 		{"true == true", true, "==", true},
 		{"true != false", true, "!=", false},
 		{"false == false", false, "==", false},
@@ -349,6 +358,16 @@ func TestParsingInfixExpressions(t *testing.T) {
 		if !testInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue) {
 			return
 		}
+
+		/* Error, exp is not defined
+		if !testLiteralExpression(t, exp.Left, tt.leftValue) {
+			return
+		}
+
+		if !testLiteralExpression(t, exp.Right, tt.rightValue) {
+			return
+		}
+		*/
 	}
 }
 
@@ -487,7 +506,6 @@ func testLiteralExpression(
 	exp ast.Expression,
 	expected interface{},
 ) bool {
-
 	switch v := expected.(type) {
 
 	// call testIntegerLiteral if expression type is an int
@@ -583,8 +601,8 @@ func TestBooleanExpression(t *testing.T) {
 
 // testBooleanLiteral is generalized Boolean test to verify the current Boolean matches its ast.Expression, has the same token type and literal value
 func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
-	bo, ok := exp.(*ast.Boolean)
 
+	bo, ok := exp.(*ast.Boolean)
 	// if type isn't Boolean, fail
 	if !ok {
 		t.Errorf("exp not *ast.Boolean. got=%T", exp)
