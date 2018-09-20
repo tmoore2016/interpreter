@@ -85,6 +85,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)     // Register a - prefix expression
 	p.registerPrefix(token.TRUE, p.parseBoolean)               // Register a TRUE prefix expression
 	p.registerPrefix(token.FALSE, p.parseBoolean)              // Register a False prefix expression
+	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)   // Register a ( prefix expression
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -367,4 +368,17 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	expression.Right = p.parseExpression(precedence) // add right field to infix expression from parseExpression, (i.e. "1 + 2 + 3;", the 2)
 
 	return expression
+}
+
+// parseGroupedExpression parses grouped expressions, "12 / (2+2)" == "(12 / (2+2))"
+func (p *Parser) parseGroupedExpression() ast.Expression {
+	p.nextToken()
+
+	exp := p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return exp
 }
