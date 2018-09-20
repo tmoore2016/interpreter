@@ -267,6 +267,8 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		{"!8;", "!", 8},
 		{"-16;", "-", 16},
 		{"!team;", "!", "team"},
+		{"!true;", "!", true},
+		{"!false;", "!", false},
 	}
 
 	// for the range of input, call a new lexer, parse the information, and run a parser check.
@@ -421,6 +423,7 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"3 + 4 * 5 == 3 * 1 + 4 * 5",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
 		},
+		// test Boolean precedence
 		{
 			"true",
 			"true",
@@ -436,6 +439,22 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"9 < 99 == true",
 			"((9 < 99) == true)",
+		},
+		// test grouped expression precedence
+		{
+			"1 + (2 + 3) + 4", "((1 + (2 + 3)) + 4)",
+		},
+		{
+			"(8 + 8) * 2", "((8 + 8) * 2)",
+		},
+		{
+			"12 / (2 + 1)", "(12 / (2 + 1))",
+		},
+		{
+			"-(5 + 5)", "(-(5 + 5))",
+		},
+		{
+			"!(true == true)", "(!(true == true))",
 		},
 	}
 
