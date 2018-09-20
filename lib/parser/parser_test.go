@@ -267,6 +267,8 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		{"!8;", "!", 8},
 		{"-16;", "-", 16},
 		{"!team;", "!", "team"},
+		{"!true;", "!", true},
+		{"!false;", "!", false},
 	}
 
 	// for the range of input, call a new lexer, parse the information, and run a parser check.
