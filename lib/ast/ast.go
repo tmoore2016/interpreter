@@ -252,3 +252,36 @@ func (b *Boolean) TokenLiteral() string {
 func (b *Boolean) String() string {
 	return b.Token.Literal
 }
+
+// IfExpression structure for If statements
+type IfExpression struct {
+	Token       token.Token     // The 'if' token
+	Condition   Expression      // The condition of the If expression that determines the return value.
+	Consequence *BlockStatement // The primary consequence
+	Alternative *BlockStatement // The alternative consequence
+}
+
+// expressionNode receives the IfExpression to create an AST node
+func (ie *IfExpression) expressionNode() {}
+
+// TokenLiteral receives the IfExpression to tokenize
+func (ie *IfExpression) TokenLiteral() string {
+	return ie.Token.Literal
+}
+
+// String receives the IfExpression for documentation and testing
+func (ie *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("if")
+	out.WriteString(ie.Condition.String())
+	out.WriteString(" ")
+	out.WriteString(ie.Consequence.String())
+
+	if ie.Alternative != nil {
+		out.WriteString("else ")
+		out.WriteString(ie.Alternative.String())
+	}
+
+	return out.String()
+}
