@@ -285,3 +285,28 @@ func (ie *IfExpression) String() string {
 
 	return out.String()
 }
+
+// BlockStatement is a structure for consequences and alternatives of If statements
+type BlockStatement struct {
+	Token      token.Token // The { token
+	Statements []Statement // An array of If statements
+}
+
+// statementNode receives the BlockStatement to create an AST node
+func (bs *BlockStatement) statementNode() {}
+
+// TokenLiteral receives the BlockStatement to tokenize
+func (bs *BlockStatement) TokenLiteral() string {
+	return bs.Token.Literal
+}
+
+// String receives the BlockStatement for documenation and testing purposes
+func (bs *BlockStatement) String() string {
+	var out bytes.Buffer
+
+	for _, s := range bs.Statements {
+		out.WriteString(s.String())
+	}
+
+	return out.String()
+}
