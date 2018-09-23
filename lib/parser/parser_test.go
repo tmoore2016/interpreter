@@ -642,3 +642,132 @@ func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 
 	return true
 }
+
+// TestIfExpression tests the parsing of If statement expressions
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	// Test the number of program statements, if not 1, fail
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	// Test type of ast node, if not an ast.ExpressionStatement, fail
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	// Ok if statement is an AST IfExpression type
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+
+	// Fail if statement is not ast.IfExpression type
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	// Verify the expression contains this Infix Expression
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+
+	// Verify that expression contains 1 consequence statement node
+	if len(exp.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statement. got=%d\n", len(exp.Consequence.Statements))
+	}
+
+	// Ok if Consequence.Statements is an AST expression statement node
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+
+	// Not ok if first consequence statement is not an ast.ExpressionStatement type
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T", exp.Consequence.Statements[0])
+	}
+
+	// For test case, x must be the consequence
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	// There is no "else" for this test case, so expression alternative must be nil
+	if exp.Alternative != nil {
+		t.Errorf("exp.Alternative.Statements was not nil. got=%+v", exp.Alternative)
+	}
+}
+
+// TestIfElseExpression tests the parsing of an If expression with an Else statement
+func TestIfElseExpression(t *testing.T) {
+	input := `if (x < y) { x } else { y }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	// Test the number of If expression statements, if not 1, fail
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	// Test type of ast node, if not an ast.ExpressionStatement, fail
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	// Ok if statement is an AST IfExpression type
+	exp, ok := stmt.Expression.(*ast.IfExpression)
+
+	// Fail if statement is not ast.IfExpression type
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.IfExpression. got=%T", stmt.Expression)
+	}
+
+	// Verify the expression contains this Infix Expression
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+
+	// Verify that expression contains 1 consequence statement node
+	if len(exp.Consequence.Statements) != 1 {
+		t.Errorf("consequence is not 1 statement. got=%d\n", len(exp.Consequence.Statements))
+	}
+
+	// Ok if Consequence.Statements is an AST expression statement node
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+
+	// Not ok if first consequence statement is not an ast.ExpressionStatement type
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T", exp.Consequence.Statements[0])
+	}
+
+	// For test case, x must be the consequence
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	// Verify that expression contains 1 alternative statement node
+	if len(exp.Alternative.Statements) != 1 {
+		t.Errorf("alternative is not 1 statement. got=%d\n", len(exp.Alternative.Statements))
+	}
+
+	// Ok if Alternative.Statements is an AST expression statement node
+	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
+
+	// Not ok if first alternative statement is not an ast.ExpressionStatement type
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got=%T", exp.Alternative.Statements[0])
+	}
+
+	// If alternative for expression isn't "y", fail
+	if !testIdentifier(t, alternative.Expression, "y") {
+		return
+	}
+}
