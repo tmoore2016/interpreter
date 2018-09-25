@@ -44,13 +44,13 @@ var precedences = map[token.TokenType]int{
 type Parser struct {
 	l              *lexer.Lexer                      // l is the pointer
 	errors         []string                          // error handling
-	curToken       token.Token                       // current token's type
-	peekToken      token.Token                       // next token's type
+	curToken       token.Token                       // current token
+	peekToken      token.Token                       // next token
 	prefixParseFns map[token.TokenType]prefixParseFn // hash table to compare prefix and infix expressions
 	infixParseFns  map[token.TokenType]infixParseFn
 }
 
-// peekPrecedence returns the lowest precedence operator in peek token
+// peekPrecedence returns the precedence operator for peek token, defaults to lowest
 func (p *Parser) peekPrecedence() int {
 	if p, ok := precedences[p.peekToken.Type]; ok {
 		return p
@@ -59,7 +59,7 @@ func (p *Parser) peekPrecedence() int {
 	return LOWEST
 }
 
-// curPrecedence returns the lowest precedence operator for current token
+// curPrecedence returns the precedence operator for current token, defaults to lowest
 func (p *Parser) curPrecedence() int {
 	if p, ok := precedences[p.curToken.Type]; ok {
 		return p
@@ -70,8 +70,8 @@ func (p *Parser) curPrecedence() int {
 
 // New Parser for lexer's tokens
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{
-		l:      l,
+	p := &Parser{ // current parser
+		l:      l,          // current lexer
 		errors: []string{}, // error handling
 	}
 
@@ -86,6 +86,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.TRUE, p.parseBoolean)               // Register a TRUE prefix expression
 	p.registerPrefix(token.FALSE, p.parseBoolean)              // Register a False prefix expression
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)   // Register a ( prefix expression
+	p.registerPrefix(token.IF, p.parseIfExpression)            // Register an IF prefix expression
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -132,7 +133,7 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
-// expectPeek confirmst that peekToken equals nextToken, or throws peekError
+// expectPeek confirms that peekToken equals nextToken, or throws peekError
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
@@ -381,4 +382,58 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	}
 
 	return exp
+}
+
+// parseIfExpression parses IF expressions
+func (p *Parser) parseIfExpression() ast.Expression { // Create an AST expression node
+	expression := &ast.IfExpression{Token: p.curToken} // Add the current token to an AST If expression node
+
+	if !p.expectPeek(token.LPAREN) { // End if token after "If" isn't a "("
+		return nil // expectPeek Returns a parser error if token is the wrong type
+	}
+
+	p.nextToken()                                    // Call next token
+	expression.Condition = p.parseExpression(LOWEST) // Check for (, ), {, then apply LOWEST precedence to them and continue
+
+	if !p.expectPeek(token.RPAREN) { // End if "If" expression doesn't end with ")"
+		return nil // expectPeek Returns a parser error if token is the wrong type
+	}
+
+	if !p.expectPeek(token.LBRACE) { // { marks beginning of block statement
+		return nil // expectPeek Returns a parser error if token is the wrong type
+	}
+
+	expression.Consequence = p.parseBlockStatement() // Apply the expression's consequence from the block statement
+
+	if p.peekTokenIs(token.ELSE) { // If "If" expresion contains an "else", call next token
+		p.nextToken()
+
+		if !p.expectPeek(token.LBRACE) { // Next token after "else" should be "{", expectPeek will advance token again if it is
+			return nil // expectPeek Returns a parser error if token is the wrong type
+		}
+
+		expression.Alternative = p.parseBlockStatement() // Apply the "else alternative" to the block statement
+	}
+
+	return expression // Results of If expression
+}
+
+// parseBlockStatement parses IF block statements, similar to parseStatement function
+func (p *Parser) parseBlockStatement() *ast.BlockStatement { // Create an AST node for block statements
+	block := &ast.BlockStatement{Token: p.curToken} // Insert current token into AST node
+	block.Statements = []ast.Statement{}            // Insert token into an array of block statement tokens
+
+	p.nextToken() // Call next token
+
+	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) { // Continue looping until } or EOF is encountered
+		stmt := p.parseStatement() // Parse block statement
+
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt) // Append token to array
+		}
+
+		p.nextToken() // Call next token
+	}
+
+	return block // Results of block statement
 }
