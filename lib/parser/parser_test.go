@@ -771,3 +771,55 @@ func TestIfElseExpression(t *testing.T) {
 		return
 	}
 }
+
+// TestFunctionLiteralParsing tests Function Literal parsing
+func TestFunctionLiteralParsing(t *testing.T) {
+
+	input := `fn(x, y) {x + y;}`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	// Fail if program doesn't contain 1 statement
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	// Program statement is an AST expression statement
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	// Fail if program isn't an AST expression statement
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	// AST expression statement type is an AST FunctionLiteral
+	function, ok := stmt.Expression.(*ast.FunctionLiteral)
+
+	// Fail if expression statement isn't an AST FunctionLiteral
+	if !ok {
+		t.Fatalf("got wrong number of function literal parameters, want 2, got=%d\n", len(function.Parameters))
+	}
+
+	// Verify the input parameters
+	testLiteralExpression(t, function.Parameters[0], "x")
+	testLiteralExpression(t, function.Parameters[1], "y")
+
+	// Fail if function doesn't have 1 body statement
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("function.Body.Statements hasn't got 1 statement. got=%d\n", len(function.Body.Statements))
+	}
+
+	// Function body statement is an AST expression statement
+	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
+
+	// Fail if body statements isn't an AST expression statement
+	if !ok {
+		t.Fatalf("function body statement is not an ast.ExpressionStatement. got=%T", function.Body.Statements[0])
+	}
+
+	// Test input for correct Infix Expression
+	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}
