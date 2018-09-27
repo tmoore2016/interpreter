@@ -19,15 +19,15 @@ import (
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 
-	if len(errors) == 0 { // exit if no errors
-		return
+	if len(errors) == 0 {
+		return // passes tests
 	}
 
 	t.Errorf("Parser has %d errors", len(errors)) // return number of errors
 	for _, msg := range errors {
 		t.Errorf("Parser error: %q", msg) // return error message
 	}
-	t.FailNow()
+	t.FailNow() // fails tests
 }
 
 func TestLetStatements(t *testing.T) {
@@ -53,7 +53,7 @@ func TestLetStatements(t *testing.T) {
 
 	// Throw error if program doesn't contain 3 statements (token, name, value)
 	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 statements. got=%d", len(program.Statements))
+		t.Fatalf("program.Statements does not contain 3 statements (token, name, value). got=%d", len(program.Statements))
 	}
 
 	// input for tests
