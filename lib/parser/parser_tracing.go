@@ -17,20 +17,25 @@ import (
 
 var traceLevel int // = 0
 
+// placeholder string for identLevel
 const traceIdentPlaceholder string = "\t"
 
+// go through traceLevel until it is nil
 func identLevel() string {
 	return strings.Repeat(traceIdentPlaceholder, traceLevel-1)
 }
 
+// print parser strings, level #
 func tracePrint(fs string) {
 	fmt.Printf("%s%s\n", identLevel(), fs)
 }
 
+// increment tracelevel
 func incIdent() {
 	traceLevel = traceLevel + 1
 }
 
+// decrement tracelevel
 func decIdent() {
 	traceLevel = traceLevel - 1
 }

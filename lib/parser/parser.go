@@ -304,7 +304,7 @@ func (p *Parser) parseBoolean() ast.Expression {
 
 	defer untrace(trace("parseBoolean")) // Call parser_tracing to follow this expression
 
-	boo := &ast.Boolean{Token: p.curToken}
+	bo := &ast.Boolean{Token: p.curToken}
 
 	// Convert string value to Boolean
 	value, err := strconv.ParseBool(p.curToken.Literal) // call the parser's current token's literal value and convert to integer
@@ -315,9 +315,9 @@ func (p *Parser) parseBoolean() ast.Expression {
 		return nil
 	}
 
-	boo.Value = value
+	bo.Value = value
 
-	return boo
+	return bo
 }
 
 /*

@@ -710,7 +710,7 @@ func TestIfElseExpression(t *testing.T) {
 	program := p.ParseProgram()
 	checkParserErrors(t, p)
 
-	// Test the number of If expression statements, if not 1, fail
+	// Test the number of If expression program statements, if not 1, fail
 	if len(program.Statements) != 1 {
 		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
 	}
@@ -737,7 +737,7 @@ func TestIfElseExpression(t *testing.T) {
 
 	// Verify that expression contains 1 consequence statement node
 	if len(exp.Consequence.Statements) != 1 {
-		t.Errorf("consequence is not 1 statement. got=%d\n", len(exp.Consequence.Statements))
+		t.Errorf("Consequence is not 1 statement. got=%d\n", len(exp.Consequence.Statements))
 	}
 
 	// Ok if Consequence.Statements is an AST expression statement node
