@@ -9,6 +9,7 @@ package ast
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/tmoore2016/interpreter/lib/token"
 )
@@ -300,13 +301,47 @@ func (bs *BlockStatement) TokenLiteral() string {
 	return bs.Token.Literal
 }
 
-// String receives the BlockStatement for documenation and testing purposes
+// String receives the BlockStatement for documentation and testing purposes
 func (bs *BlockStatement) String() string {
 	var out bytes.Buffer
 
 	for _, s := range bs.Statements {
 		out.WriteString(s.String())
 	}
+
+	return out.String()
+}
+
+// FunctionLiteral structure defines a function
+type FunctionLiteral struct {
+	Token      token.Token     // The 'fn' token
+	Parameters []*Identifier   // Function parameters (a,b,c)
+	Body       *BlockStatement // Function statement
+}
+
+// expressionNode assign an AST node to FunctionLiteral
+func (fl *FunctionLiteral) expressionNode() {}
+
+// TokenLiteral returns the FunctionLiteral's token value
+func (fl *FunctionLiteral) TokenLiteral() string {
+	return fl.Token.Literal
+}
+
+// String appends each function literal parameter value (an AST identifier), adds parentheses and separates by comma
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+
+	for _, p := range fl.Parameters { // *ast.Identifiers
+		params = append(params, p.String())
+	}
+
+	out.WriteString(fl.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ","))
+	out.WriteString(")")
+	out.WriteString(fl.Body.String())
 
 	return out.String()
 }
