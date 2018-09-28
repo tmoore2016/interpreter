@@ -823,3 +823,40 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	// Test input for correct Infix Expression
 	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
 }
+
+// TestFunctionParameterParsing tests the parsing of parameters for a function literal
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		// test input: an empty set of parameters, 1 parameter, 3 parameters
+		{input: "fn() {};", expectedParams: []string{}},
+		{input: "fn(x) {};", expectedParams: []string{"x"}},
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	// Run test for each input, apply input to lexer, parse it, and create a new program statement
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		// Apply the program statement to an AST expression statement node
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+
+		// Apply the AST expression statement to an AST functionLiteral expression node
+		function := stmt.Expression.(*ast.FunctionLiteral)
+
+		// Tests that the number of input parameters equals the number of output parameters
+		if len(function.Parameters) != len(tt.expectedParams) {
+			t.Errorf("length of parameters is wrong, expected %d, got =%d\n", len(tt.expectedParams), len(function.Parameters))
+		}
+
+		// For each identifier (parameter), compare its actual type to its expected type
+		for i, ident := range tt.expectedParams {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
+	}
+}
