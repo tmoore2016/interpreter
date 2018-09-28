@@ -87,6 +87,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FALSE, p.parseBoolean)              // Register a False prefix expression
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)   // Register a ( prefix expression
 	p.registerPrefix(token.IF, p.parseIfExpression)            // Register an IF prefix expression
+	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)   // Register a Function prefix expression
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -299,6 +300,13 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	return lit
 }
 
+/*
+// This is ParseBoolean function from the book. I rewrote this following the parseIntegerLiteral function that converts the string to another type. Good idea?
+func (p *Parser) parseBoolean() ast.Expression {
+	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
+}
+*/
+
 // parseBoolean parses boolean expressions from parseExpression, returns the AST identifier and its value, converts the string into an integer, and returns the new token type. It doesn't advance the token or call nextToken.
 func (p *Parser) parseBoolean() ast.Expression {
 
@@ -307,7 +315,7 @@ func (p *Parser) parseBoolean() ast.Expression {
 	bo := &ast.Boolean{Token: p.curToken}
 
 	// Convert string value to Boolean
-	value, err := strconv.ParseBool(p.curToken.Literal) // call the parser's current token's literal value and convert to integer
+	value, err := strconv.ParseBool(p.curToken.Literal) // call the parser's current token string value and convert to Boolean
 
 	if err != nil {
 		msg := fmt.Sprintf("Could not parse %q as Boolean", p.curToken.Literal)
@@ -319,13 +327,6 @@ func (p *Parser) parseBoolean() ast.Expression {
 
 	return bo
 }
-
-/*
-// ParseBoolean function from the book, boolean is inlined(?). I rewrote this following the parseIntegerLiteral function that converts the string to another type.
-func (p *Parser) parseBoolean() ast.Expression {
-	return &ast.Boolean{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
-}
-*/
 
 // parsePrefixExpression parses ! and - prefixes, and their associated expressions
 func (p *Parser) parsePrefixExpression() ast.Expression {
@@ -386,13 +387,15 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 
 // parseIfExpression parses IF expressions
 func (p *Parser) parseIfExpression() ast.Expression { // Create an AST expression node
+
 	expression := &ast.IfExpression{Token: p.curToken} // Add the current token to an AST If expression node
 
 	if !p.expectPeek(token.LPAREN) { // End if token after "If" isn't a "("
 		return nil // expectPeek Returns a parser error if token is the wrong type
 	}
 
-	p.nextToken()                                    // Call next token
+	p.nextToken() // Call next token
+
 	expression.Condition = p.parseExpression(LOWEST) // Check for (, ), {, then apply LOWEST precedence to them and continue
 
 	if !p.expectPeek(token.RPAREN) { // End if "If" expression doesn't end with ")"
@@ -436,4 +439,57 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement { // Create an AST no
 	}
 
 	return block // Results of block statement
+}
+
+// parseFunctionLiterals parses function literals "fn add(a,b){a+b;}"
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+
+	lit := &ast.FunctionLiteral{Token: p.curToken} // Create an AST function literal node with current token
+
+	if !p.expectPeek(token.LPAREN) { // End if token after fn name isn't a "("
+		return nil // ExpectPeek returns a parser error if token isn't the expected type
+	}
+
+	lit.Parameters = p.parseFunctionParameters() // Parse the function's parameters with parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) { // End if token after fn name isn't a "{"
+		return nil // ExpectPeek returns a parser error if token isn't the expected type
+	}
+
+	lit.Body = p.parseBlockStatement() // Parse the function's body with parseBlockStatement()
+
+	return lit // Final functionLiteral expression
+}
+
+// parseFunctionParameters parses function literal expression's parameters
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+
+	identifiers := []*ast.Identifier{} // Assign to an array of AST identifiers (function parameters)
+
+	// If next token is ")", advance parser to next token and return empty array of parameters
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return identifiers
+	}
+
+	p.nextToken() // Advance to token following "("
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal} // Define a single parameter, assign it to an AST identifier with Token type and value
+
+	identifiers = append(identifiers, ident) // Append individual identifier to the array of identifiers (parameters)
+
+	// When next token is "," -- advance parser twice to move to the token after comma, assign the identifier (parameter)
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		identifiers = append(identifiers, ident)
+	}
+
+	// An ")" is expected to follow the parameter list, if this is false, return peek error
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return identifiers // Final parameter list
 }
