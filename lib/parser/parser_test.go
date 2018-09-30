@@ -830,10 +830,10 @@ func TestFunctionParameterParsing(t *testing.T) {
 		input          string
 		expectedParams []string
 	}{
-		// test input: an empty set of parameters, 1 parameter, 3 parameters
-		{input: "fn() {};", expectedParams: []string{}},
-		{input: "fn(x) {};", expectedParams: []string{"x"}},
-		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+		// test input
+		{input: "fn() {};", expectedParams: []string{}},                     // An empty set of parameters
+		{input: "fn(x) {};", expectedParams: []string{"x"}},                 // 1 parameter
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}}, // 3 parameters
 	}
 
 	// Run test for each input, apply input to lexer, parse it, and create a new program statement
