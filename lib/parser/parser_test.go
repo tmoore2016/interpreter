@@ -800,6 +800,11 @@ func TestFunctionLiteralParsing(t *testing.T) {
 
 	// Fail if expression statement isn't an AST FunctionLiteral
 	if !ok {
+		t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got=%T", stmt.Expression)
+	}
+
+	// Fail if number of input parameters isn't 2
+	if len(function.Parameters) != 2 {
 		t.Fatalf("got wrong number of function literal parameters, want 2, got=%d\n", len(function.Parameters))
 	}
 
@@ -830,10 +835,10 @@ func TestFunctionParameterParsing(t *testing.T) {
 		input          string
 		expectedParams []string
 	}{
-		// test input: an empty set of parameters, 1 parameter, 3 parameters
-		{input: "fn() {};", expectedParams: []string{}},
-		{input: "fn(x) {};", expectedParams: []string{"x"}},
-		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+		// test input
+		{input: "fn() {};", expectedParams: []string{}},                     // An empty set of parameters
+		{input: "fn(x) {};", expectedParams: []string{"x"}},                 // 1 parameter
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}}, // 3 parameters
 	}
 
 	// Run test for each input, apply input to lexer, parse it, and create a new program statement
@@ -860,3 +865,92 @@ func TestFunctionParameterParsing(t *testing.T) {
 		}
 	}
 }
+
+// TestCallExpressionParsing tests call expression parsing
+func TestCallExpressionParsing(t *testing.T) {
+
+	input := "add(1, 2 * 3, 4 + 5;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	// Fail if program doesn't contain 1 statement
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+
+	// Program statement is an AST expression statement
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	// Fail if program isn't an AST expression statement, show type received
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	// AST expression statement type is an AST CallExpression
+	exp, ok := stmt.Expression.(*ast.CallExpression)
+
+	// Fail if expression statement isn't an AST CallExpression
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.CallExpression. got=%T", stmt.Expression)
+	}
+
+	// Fail if expression's test identifier isn't "add"
+	if !testIdentifier(t, exp.Function, "add") {
+		return
+	}
+
+	if len(exp.Arguments) != 3 {
+		t.Fatalf("Wrong number of arguments, expected 3 got=%d", len(exp.Arguments))
+	}
+
+	// Test first expression argument
+	testLiteralExpression(t, exp.Arguments[0], 1)
+
+	// Test second expression argument
+	testInfixExpression(t, exp.Arguments[1], 2, "*", 3)
+
+	// Test third expression argument
+	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
+}
+
+/* Copied from test for function literal parameters, haven't tailored it to callExpression arguments yet.
+// TestCallExpressionArgumentParsing tests the parsing of arguments for a call expression
+func TestCallExpressionArgumentParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		// test input
+		{input: "fn() {};", expectedParams: []string{}},                     // An empty set of parameters
+		{input: "fn(x) {};", expectedParams: []string{"x"}},                 // 1 parameter
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}}, // 3 parameters
+	}
+
+	// Run test for each input, apply input to lexer, parse it, and create a new program statement
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		// Apply the program statement to an AST expression statement node
+		stmt := program.Statements[0].(*ast.ExpressionStatement)
+
+		// Apply the AST expression statement to an AST functionLiteral expression node
+		function := stmt.Expression.(*ast.FunctionLiteral)
+
+		// Tests that the number of input parameters equals the number of output parameters
+		if len(function.Parameters) != len(tt.expectedParams) {
+			t.Errorf("length of parameters is wrong, expected %d, got =%d\n", len(tt.expectedParams), len(function.Parameters))
+		}
+
+		// For each identifier (parameter), compare its actual type to its expected type
+		for i, ident := range tt.expectedParams {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
+	}
+}
+*/

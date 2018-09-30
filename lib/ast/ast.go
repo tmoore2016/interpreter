@@ -345,3 +345,36 @@ func (fl *FunctionLiteral) String() string {
 
 	return out.String()
 }
+
+// CallExpression structure for Call Expression "add(2, 3)" AST node
+type CallExpression struct {
+	Token     token.Token // The '(' token
+	Function  Expression  // Identifier or function literal
+	Arguments []Expression
+}
+
+// ExpressionNode creates an AST expression node for the CallExpression
+func (ce *CallExpression) expressionNode() {}
+
+// TokenLiteral returns the Token value for Call expression
+func (ce *CallExpression) TokenLiteral() string {
+	return ce.Token.Literal
+}
+
+// String appends each CallExpression argument to a string, adds parentheses, and separates by comma.
+func (ce *CallExpression) String() string {
+	var out bytes.Buffer
+
+	args := []string{}
+
+	for _, a := range ce.Arguments {
+		args = append(args, a.String())
+	}
+
+	out.WriteString(ce.Function.String())
+	out.WriteString("(")
+	out.WriteString(strings.Join(args, ","))
+	out.WriteString(")")
+
+	return out.String()
+}
