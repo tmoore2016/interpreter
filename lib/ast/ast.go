@@ -346,11 +346,11 @@ func (fl *FunctionLiteral) String() string {
 	return out.String()
 }
 
-// CallExpression structure for Call Expression "add(2, 3)" AST node
+// CallExpression structure for Call Expression AST Node, DoorKey example: 'add(2, 3)' , or 'callsFunction(2, 3, fn(x + y) {x + y;};' , 'out.WriteString(strings.Join(args, ","))' # Golang expression call
 type CallExpression struct {
-	Token     token.Token // The '(' token
-	Function  Expression  // Identifier or function literal
-	Arguments []Expression
+	Token     token.Token  // The '(' token
+	Function  Expression   // Identifier or function literal
+	Arguments []Expression // Arguments are expressions
 }
 
 // ExpressionNode creates an AST expression node for the CallExpression
@@ -363,7 +363,7 @@ func (ce *CallExpression) TokenLiteral() string {
 
 // String appends each CallExpression argument to a string, adds parentheses, and separates by comma.
 func (ce *CallExpression) String() string {
-	var out bytes.Buffer
+	var out bytes.Buffer // Assign "out" to byte(s) with buffer?
 
 	args := []string{}
 

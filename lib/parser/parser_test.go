@@ -869,6 +869,7 @@ func TestFunctionParameterParsing(t *testing.T) {
 // TestCallExpressionParsing tests call expression parsing
 func TestCallExpressionParsing(t *testing.T) {
 
+	// Run test for each input, apply input to lexer, parse it, and create a new program statement
 	input := "add(1, 2 * 3, 4 + 5;"
 
 	l := lexer.New(input)
@@ -902,6 +903,7 @@ func TestCallExpressionParsing(t *testing.T) {
 		return
 	}
 
+	// Fail if expected number of expressions isn't actual number
 	if len(exp.Arguments) != 3 {
 		t.Fatalf("Wrong number of arguments, expected 3 got=%d", len(exp.Arguments))
 	}
@@ -916,17 +918,41 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
 
-/* Copied from test for function literal parameters, haven't tailored it to callExpression arguments yet.
 // TestCallExpressionArgumentParsing tests the parsing of arguments for a call expression
+// Haven't looked at the book's test yet, adapted this from TestFunctionParameterParsing, don't know what output should look like.
 func TestCallExpressionArgumentParsing(t *testing.T) {
 	tests := []struct {
-		input          string
-		expectedParams []string
+		input         string
+		expectedIdent string
+		expectedArgs  []string
 	}{
 		// test input
-		{input: "fn() {};", expectedParams: []string{}},                     // An empty set of parameters
-		{input: "fn(x) {};", expectedParams: []string{"x"}},                 // 1 parameter
-		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}}, // 3 parameters
+
+		{
+			input:         "add();", // Arguments are expressions. Could be integers, parameters, functions, function calls, etc.
+			expectedIdent: "add",    // identifiers
+			expectedArgs:  []string{},
+		},
+		{
+			input:         "add(1);",
+			expectedIdent: "add",
+			expectedArgs:  []string{"1"},
+		},
+		{
+			input:         "add(1, 3 * 3, 5 + 7);",
+			expectedIdent: "add",
+			expectedArgs:  []string{"1", "(3 * 3)", "(5 + 7)"},
+		},
+		{
+			input:         "callsFunction(2, 3, fn(x + y) {x + y;};",
+			expectedIdent: "callsFunction",
+			expectedArgs:  []string{"2", "3", "fn(x + y){x + y}"},
+		},
+		{
+			input:         "fn(x, y, z)",
+			expectedIdent: "fn",
+			expectedArgs:  []string{"x", "y", "z"},
+		},
 	}
 
 	// Run test for each input, apply input to lexer, parse it, and create a new program statement
@@ -939,18 +965,29 @@ func TestCallExpressionArgumentParsing(t *testing.T) {
 		// Apply the program statement to an AST expression statement node
 		stmt := program.Statements[0].(*ast.ExpressionStatement)
 
-		// Apply the AST expression statement to an AST functionLiteral expression node
-		function := stmt.Expression.(*ast.FunctionLiteral)
+		// Apply the AST expression statement to an AST CallExpression expression node
+		cex, ok := stmt.Expression.(*ast.CallExpression)
 
-		// Tests that the number of input parameters equals the number of output parameters
-		if len(function.Parameters) != len(tt.expectedParams) {
-			t.Errorf("length of parameters is wrong, expected %d, got =%d\n", len(tt.expectedParams), len(function.Parameters))
+		// Fail if AST expression isn't a CallExpression
+		if !ok {
+			t.Fatalf("stmt.Expression is not AST CallExpression type. got=%T", stmt.Expression)
 		}
 
-		// For each identifier (parameter), compare its actual type to its expected type
-		for i, ident := range tt.expectedParams {
-			testLiteralExpression(t, function.Parameters[i], ident)
+		// Test that identifier is expected identifier
+		if !testIdentifier(t, cex.Function, tt.expectedIdent) {
+			return
+		}
+
+		// Tests that the number of input arguments equals the number of output arguments
+		if len(cex.Arguments) != len(tt.expectedArgs) {
+			t.Fatalf("Number of call expression arguments is wrong, expected %d, got =%d\n", len(tt.expectedArgs), len(cex.Arguments))
+		}
+
+		// For each argument, compare its actual type to its expected type
+		for i, arg := range tt.expectedArgs {
+			if cex.Arguments[i].String() != arg {
+				t.Errorf("Argument %d is wrong. Expected=%q, got=%q", i, arg, cex.Arguments[1].String())
+			}
 		}
 	}
 }
-*/
