@@ -916,8 +916,8 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
 
-/* Copied from test for function literal parameters, haven't tailored it to callExpression arguments yet.
 // TestCallExpressionArgumentParsing tests the parsing of arguments for a call expression
+/* Copied from test TestFunctionParameterParsing, haven't tailored it to callExpression arguments yet.
 func TestCallExpressionArgumentParsing(t *testing.T) {
 	tests := []struct {
 		input          string
