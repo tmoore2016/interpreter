@@ -30,7 +30,8 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.FailNow() // fails tests
 }
 
-func TestLetStatements(t *testing.T) {
+/*
+func OldTestLetStatements(t *testing.T) {
 	input :=
 		// Test input for let
 		`
@@ -76,8 +77,8 @@ func TestLetStatements(t *testing.T) {
 		}
 	}
 }
+*/
 
-/* Generalized 'let' test, this test fails, input expression returns nil
 // testLetStatements tests integrity of input from lexer and parser for let statements.
 func TestLetStatements(t *testing.T) {
 	tests := []struct {
@@ -86,7 +87,7 @@ func TestLetStatements(t *testing.T) {
 		expectedValue      interface{}
 	}{
 		{"let x = 5;", "x", 5},
-		{"let y = true;", "y", "true"},
+		{"let y = true;", "y", true},
 		{"let team = broncos;", "team", "broncos"},
 	}
 
@@ -105,17 +106,18 @@ func TestLetStatements(t *testing.T) {
 		}
 
 		stmt := program.Statements[0]
+
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
 			return
 		}
 
 		val := stmt.(*ast.LetStatement).Value
+
 		if !testLiteralExpression(t, val, tt.expectedValue) {
 			return
 		}
 	}
 }
-*/
 
 // testLetStatement must contain test case, AST statement with TokenLiteral "let", and identifier to return true.
 func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
@@ -455,6 +457,19 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		},
 		{
 			"!(true == true)", "(!(true == true))",
+		},
+		// Test call expression precedence
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a,b,1,(2 * 3),(4 + 5),add(6,(7 * 8)))",
+		},
+		{
+			"add(a + b + c * d / f + g)",
+			"add((((a + b) + ((c * d) / f)) + g))",
 		},
 	}
 
@@ -870,7 +885,7 @@ func TestFunctionParameterParsing(t *testing.T) {
 func TestCallExpressionParsing(t *testing.T) {
 
 	// Run test for each input, apply input to lexer, parse it, and create a new program statement
-	input := "add(1, 2 * 3, 4 + 5;"
+	input := "add(1, 2 * 3, 4 + 5);"
 
 	l := lexer.New(input)
 	p := New(l)
@@ -919,7 +934,6 @@ func TestCallExpressionParsing(t *testing.T) {
 }
 
 // TestCallExpressionArgumentParsing tests the parsing of arguments for a call expression
-// Haven't looked at the book's test yet, adapted this from TestFunctionParameterParsing, don't know what output should look like.
 func TestCallExpressionArgumentParsing(t *testing.T) {
 	tests := []struct {
 		input         string
@@ -942,16 +956,6 @@ func TestCallExpressionArgumentParsing(t *testing.T) {
 			input:         "add(1, 3 * 3, 5 + 7);",
 			expectedIdent: "add",
 			expectedArgs:  []string{"1", "(3 * 3)", "(5 + 7)"},
-		},
-		{
-			input:         "callsFunction(2, 3, fn(x + y) {x + y;};",
-			expectedIdent: "callsFunction",
-			expectedArgs:  []string{"2", "3", "fn(x + y){x + y}"},
-		},
-		{
-			input:         "fn(x, y, z)",
-			expectedIdent: "fn",
-			expectedArgs:  []string{"x", "y", "z"},
 		},
 	}
 
