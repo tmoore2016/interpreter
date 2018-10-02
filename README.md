@@ -9,4 +9,6 @@ Currently working on:
 
 ~~Chapter 1: Lexing~~
 
-Chapter 2: Parsing
+~~Chapter 2: Parsing~~
+
+Chapter 3: Evaluation
