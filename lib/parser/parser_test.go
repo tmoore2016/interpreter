@@ -30,7 +30,8 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	t.FailNow() // fails tests
 }
 
-func TestLetStatements(t *testing.T) {
+/*
+func OldTestLetStatements(t *testing.T) {
 	input :=
 		// Test input for let
 		`
@@ -76,8 +77,8 @@ func TestLetStatements(t *testing.T) {
 		}
 	}
 }
+*/
 
-/* Generalized 'let' test, this test fails, input expression returns nil
 // testLetStatements tests integrity of input from lexer and parser for let statements.
 func TestLetStatements(t *testing.T) {
 	tests := []struct {
@@ -86,7 +87,7 @@ func TestLetStatements(t *testing.T) {
 		expectedValue      interface{}
 	}{
 		{"let x = 5;", "x", 5},
-		{"let y = true;", "y", "true"},
+		{"let y = true;", "y", true},
 		{"let team = broncos;", "team", "broncos"},
 	}
 
@@ -105,17 +106,18 @@ func TestLetStatements(t *testing.T) {
 		}
 
 		stmt := program.Statements[0]
+
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
 			return
 		}
 
 		val := stmt.(*ast.LetStatement).Value
+
 		if !testLiteralExpression(t, val, tt.expectedValue) {
 			return
 		}
 	}
 }
-*/
 
 // testLetStatement must contain test case, AST statement with TokenLiteral "let", and identifier to return true.
 func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
