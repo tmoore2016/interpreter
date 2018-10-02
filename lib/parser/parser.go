@@ -38,6 +38,7 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.DIVIDE:   PRODUCT,
 	token.MULTIPLY: PRODUCT,
+	token.LPAREN:   CALL,
 }
 
 // Parser structure, pulls data from lexer
@@ -98,6 +99,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseCallExpression) // Register a ( infix expression for call expressions
 
 	return p
 }
@@ -492,4 +494,47 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	}
 
 	return identifiers // Final parameter list
+}
+
+// parseCallExpressions parses call expressions
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+
+	// Assign to an AST CallExpression node
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+
+	// Parse call expression arguments
+	exp.Arguments = p.parseCallArguments()
+
+	return exp
+}
+
+// parseCallArguments parses call expression arguments
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{} // Put each arg into an array of AST expression nodes
+
+	// If peek token is RPAREN, advance to next token and return arguments.
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	// Advance to token after LPAREN
+	p.nextToken()
+
+	// Append current token to arguments array, parse the expression, assign lowest precedence
+	args = append(args, p.parseExpression(LOWEST))
+
+	// If peekToken is a comma, advance two tokens and append current token to arguments, parse current token, assign it lowest precedence
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	// If there isn't a RPAREN in call expression, return nil
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
 }
