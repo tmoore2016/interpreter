@@ -16,35 +16,40 @@ import "github.com/tmoore2016/interpreter/lib/token"
 // Lexer for input and pointers
 type Lexer struct {
 	input        string
-	position     int  // current reading position in input (points to current ch)
-	readPosition int  //current reading position in input (after current ch)
+	position     int  // current lexer position (points to current ch)
+	readPosition int  // current reading position in input (after current ch). Enables Peek?
 	ch           byte // current char being examined
 }
 
-// New calls readChar from *Lexer before NextToken is called and initializes pointers
-func New(input string) *Lexer {
-	l := &Lexer{input: input}
-	l.readChar()
-	return l
+// New calls *Lexer's readChar before NextToken is called and initializes pointers
+func New(input string) *Lexer { // Call new input, prepare Lexer
+	l := &Lexer{input: input} // Create Lexer instance with input
+	l.readChar()              // Initialize Lexer pointer
+	return l                  // when all input is lexed
 }
 
-// readChar returns the last char in the input string and increments to the next one until there are none left.
+// readChar reads each char in the input string. The read pointer's position is always one ahead of the Lexer pointer's position, unless there are 0 chars left
 func (l *Lexer) readChar() {
-	if l.readPosition >= len(l.input) { // ! = no input or end of string
-		l.ch = 0 // nill
+
+	if l.readPosition >= len(l.input) { // If greater than 0, Lexer's read position keeps incrementing until it is beyond input length.
+		l.ch = 0 // Lexer char is 0, nil?.
+
 	} else {
-		l.ch = l.input[l.readPosition]
+		l.ch = l.input[l.readPosition] // lexer char is lexer's read position from input
 	}
-	l.position = l.readPosition // always points to the length char read
-	l.readPosition++            // always points to the next char
+
+	l.position = l.readPosition // Lexer's char position advances to lexer's read position
+	l.readPosition++            // Lexer's read pointer advances to the next input char
 }
 
-// peekChar returns the next char in the input string, but doesn't increment the position
+// peekChar returns the next char in the input string (the read char), but doesn't increment the position
 func (l *Lexer) peekChar() byte {
-	if l.readPosition >= len(l.input) {
-		return 0
+
+	if l.readPosition >= len(l.input) { // If Lexer's read position is beyond the input length
+		return 0 // No peek char
+
 	} else {
-		return l.input[l.readPosition]
+		return l.input[l.readPosition] // Send the lexer's read position to the lexer as input
 	}
 }
 
@@ -57,21 +62,32 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	// this can be generalized
-	// the char determines the token type
+	// Lexer's char determines the token type
 	switch l.ch {
-	// Two character checks could be abstracted into a function
+
+	// Assign tokens to input
+	// Dual character checks could be abstracted into a function
 	// '=' or '=='
-	case '=':
-		// call peekChar() to check for a second '='
+	case '=': // Lexer's char is "="
+		if l.peekChar() == '=' { // Call peekChar to check if the next char is another "="
+			ch := l.ch                                          // Advance lexer character to the second "="
+			l.readChar()                                        // Call lexer read char to advance pointer again
+			literal := string(ch) + string(l.ch)                // The literal value of the char after the second "="
+			tok = token.Token{Type: token.EQ, Literal: literal} // Assign the current char's literal value to EQ token
+		} else {
+			tok = newToken(token.ASSIGN, l.ch) // Assign the
+		}
+	// '!' or '!='
+	case '!':
+		// call peekChar() to check for a '='
 		if l.peekChar() == '=' {
 			ch := l.ch
 			l.readChar()
-			literal := string(ch) + string(l.ch) // its literal value ';'
-			tok = token.Token{Type: token.EQ, Literal: literal}
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
 		} else {
-			tok = newToken(token.ASSIGN, l.ch)
+			tok = newToken(token.NOT, l.ch)
 		}
-	// Assign tokens to input
 	case '(':
 		tok = newToken(token.LPAREN, l.ch)
 	case ')':
@@ -88,18 +104,6 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.DIVIDE, l.ch)
 	case '*':
 		tok = newToken(token.MULTIPLY, l.ch)
-	// Two character checks could be abstracted into a function
-	// '!' or '!='
-	case '!':
-		// call peekChar() to check for a '='
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			literal := string(ch) + string(l.ch)
-			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
-		} else {
-			tok = newToken(token.NOT, l.ch)
-		}
 	case '<':
 		tok = newToken(token.LT, l.ch)
 	case '>':
@@ -112,14 +116,15 @@ func (l *Lexer) NextToken() token.Token {
 	//case '':
 	//	tok = newToken(token.ASSIGN, )
 
-	// Nill, end of file
+	// Empty or end of file
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
 
-	// default makes a check whenever l.ch is unrecognized
-	// If token is letter, get its literal and type (could be a keyword), otherwise throw error
+	// default makes a check whenever l.ch is unrecognized, none of the cases above
+	// If token is letter or digit, get type and literal value, otherwise throw error
 	default:
+
 		if isLetter(l.ch) { // if length character is letter
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
@@ -139,8 +144,8 @@ func (l *Lexer) NextToken() token.Token {
 
 // skipWhitespace ignores white space
 func (l *Lexer) skipWhitespace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
-		l.readChar() // \r = return
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' { // \r = return
+		l.readChar() // Advance lexer pointers
 	}
 }
 
@@ -148,23 +153,23 @@ func (l *Lexer) skipWhitespace() {
 Advance lexer for each type, could be generalized with a loop
 */
 
-// advances the lexer's position until it encounters a non-letter char
+// readIdentifier reads identifiers (names, words, chars). Advances the lexer's position until something other than a letter is encountered
 func (l *Lexer) readIdentifier() string {
-	position := l.position
-	for isLetter(l.ch) {
-		l.readChar()
+	position := l.position // Pointer position is lexer's position
+	for isLetter(l.ch) {   // For each lexer char that is a letter,
+		l.readChar() // Read and advance
 	}
-	return l.input[position:l.position]
+	return l.input[position:l.position] // Send lexer new position input
 }
 
 // advances the lexer's position until it encounters a non-number char
 func (l *Lexer) readNumber() string {
 	position := l.position // match indexes
 	// for
-	for isDigit(l.ch) { // if index  is a digit move to next char
-		l.readChar() // send length non-digit to readChar()
+	for isDigit(l.ch) { // for each lexer position that is a digit,
+		l.readChar() // advance
 	}
-	return l.input[position:l.position]
+	return l.input[position:l.position] // Send lexer new position input
 }
 
 /*
