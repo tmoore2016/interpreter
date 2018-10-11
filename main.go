@@ -20,7 +20,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("Hello %s! Welcome to Doorkey a Monkey derivative!\n", user.Username)
-	fmt.Printf("I will lex your input, parse it, and return the Abstract Syntax Tree. I'm currently learning to evaluate the AST, and I'll give back what I know.")
+	fmt.Printf("Hello %s!", user.Username)
+	fmt.Printf("Welcome to Doorkey a Monkey derivative!\n I will lex your input, parse it, and return the Abstract Syntax Tree.\n I'm currently learning to evaluate the AST, and I'll give back what I know.")
 	repl.Start(os.Stdin, os.Stdout)
 }
