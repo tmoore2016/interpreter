@@ -21,6 +21,6 @@ func main() {
 	}
 
 	fmt.Printf("Hello %s! Welcome to Doorkey a Monkey derivative!\n", user.Username)
-	fmt.Printf("I will parse your input and return it to you.")
+	fmt.Printf("I will lex your input, parse it, and return the Abstract Syntax Tree. I'm currently learning to evaluate the AST, and I'll give back what I know.")
 	repl.Start(os.Stdin, os.Stdout)
 }
