@@ -14,6 +14,13 @@ import (
 
 // interpreter\evaluator\evaluator.go
 
+// Vars are for types with fixed values, prevents creating new objects for identical references.
+var (
+	NULL  = &object.Null{}
+	TRUE  = &object.Boolean{Value: true}
+	FALSE = &object.Boolean{Value: false}
+)
+
 // Eval evaluates each AST node by sending the ast.Node interface as input to the object package
 func Eval(node ast.Node) object.Object {
 
@@ -33,6 +40,22 @@ func Eval(node ast.Node) object.Object {
 	// AST IntegerLiteral node returns an Integer Literal expression object with type and value
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
+
+	// AST Boolean node returns a Boolean expression object with type and value
+	case *ast.Boolean:
+		return nativeBoolToBooleanObject(node.Value)
+
+	// AST prefix expression node evaluates the right side of the prefix expression, and then evaluates the prefix expression operator
+	case *ast.PrefixExpression:
+		right := Eval(node.Right)
+		return evalPrefixExpression(node.Operator, right)
+
+	// AST Infix expression evaluates the left and right node expressions, and then evaluates the operator
+	case *ast.InfixExpression:
+		left := Eval(node.Left)
+		right := Eval(node.Right)
+		return evalInfixExpression(node.Operator, left, right)
+
 	}
 
 	return nil
@@ -50,4 +73,127 @@ func evalStatements(stmts []ast.Statement) object.Object {
 
 	// Return AST statements as objects
 	return result
+}
+
+// nativeBoolToBooleanObject takes bools as input and returns either TRUE or FALSE vars
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+
+	if input {
+		return TRUE
+	}
+
+	return FALSE
+}
+
+// evalPrefixExpression accepts the right side of the prefix expression as an object and applies NULL to the left side operator unless it is a ! or -, which are evaluated.
+func evalPrefixExpression(operator string, right object.Object) object.Object {
+
+	switch operator {
+
+	case "!":
+		return evalNotOperatorExpression(right)
+
+	case "-":
+		return evalMinusPrefixOperatorExpression(right)
+
+	default:
+		return NULL
+	}
+}
+
+// evalNotOperatorExpression evaluates ! prefix expressions and returns the opposite.
+func evalNotOperatorExpression(right object.Object) object.Object {
+
+	switch right {
+
+	case TRUE:
+		return FALSE
+
+	case FALSE:
+		return TRUE
+
+	case NULL:
+		return TRUE
+
+	default:
+		return FALSE
+	}
+}
+
+// evalMinusPrefixOperatorExpression evaluates - prefix operators and if the right side of the prefix expression is an integer, returns the negative value.
+func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
+
+	// Return null if the right side expression isn't an integer
+	if right.Type() != object.INTEGER_OBJ {
+		return NULL
+	}
+
+	value := right.(*object.Integer).Value
+
+	// Apply the negative value to an integer
+	return &object.Integer{Value: -value}
+}
+
+// evalInfixExpression evaluates the left, right, and operator objects of an infix expression
+func evalInfixExpression(
+	operator string,
+	left, right object.Object,
+) object.Object {
+
+	switch {
+
+	// When left and right sides of the infix expression are integers, evaluate the integer infix expression
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return evalIntegerInfixExpression(operator, left, right)
+
+	// If infix operator is ==, it will make a pointer comparison between left and right booleans. This works because there are only two Boolean expressions, the vars TRUE and FALSE and they are always in the same memory address. It won't work for integers, but those are compared in the switch statement above.
+	case operator == "==":
+		return nativeBoolToBooleanObject(left == right)
+
+	// Works the same as ==
+	case operator == "!=":
+		return nativeBoolToBooleanObject(left != right)
+
+	// When left or right side of the infix expression isn't an integer, return null
+	default:
+		return NULL
+	}
+}
+
+func evalIntegerInfixExpression(
+	operator string,
+	left, right object.Object,
+) object.Object {
+	leftVal := left.(*object.Integer).Value
+	rightVal := right.(*object.Integer).Value
+
+	switch operator {
+
+	case "+":
+		return &object.Integer{Value: leftVal + rightVal}
+
+	case "-":
+		return &object.Integer{Value: leftVal - rightVal}
+
+	case "*":
+		return &object.Integer{Value: leftVal * rightVal}
+
+	case "/":
+		return &object.Integer{Value: leftVal / rightVal}
+
+	case "<":
+		return nativeBoolToBooleanObject(leftVal < rightVal)
+
+	case ">":
+		return nativeBoolToBooleanObject(leftVal > rightVal)
+
+	case "==":
+		return nativeBoolToBooleanObject(leftVal == rightVal)
+
+	case "!=":
+		return nativeBoolToBooleanObject(leftVal != rightVal)
+
+	default:
+		return NULL
+	}
 }
