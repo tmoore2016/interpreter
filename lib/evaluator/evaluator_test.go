@@ -15,6 +15,16 @@ import (
 	"github.com/tmoore2016/interpreter/lib/parser"
 )
 
+// testEval sends input to the lexer, parses it, assigns it to an AST program node, and returns the evaluated node.
+func testEval(input string) object.Object {
+
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
+
+	return Eval(program)
+}
+
 // TestEvalIntegerExpressions checks the type and value of integer input
 func TestEvalIntegerExpression(t *testing.T) {
 
@@ -25,6 +35,16 @@ func TestEvalIntegerExpression(t *testing.T) {
 		// Test input
 		{"8", 8},
 		{"32", 32},
+		{"-8", -8},
+		{"-32", -32},
+		{"5 + 5 + 5 + 5 - 10", 10},
+		{"2 * 2 * 2 * 2 * 2 * 2", 64},
+		{"-64 + 128 + -64", 0},
+		{"8 * 8 + 6 - 75", -5},
+		{"100 / 10 * 4 - 40 + 5", 5},
+		{"(8 - 6) / 2 - 1", 0},
+		{"-(2 + 2) - 10", -14},
+		{"(6 + 5 - 2 + 1) * 4 / 8 + -9", -4},
 	}
 
 	// For each test input, send to testEval() and confirm that the evaluated output is equal to expected output
@@ -32,16 +52,6 @@ func TestEvalIntegerExpression(t *testing.T) {
 		evaluated := testEval(tt.input)
 		testIntegerObject(t, evaluated, tt.expected)
 	}
-}
-
-// testEval sends input to the lexer, parses it, assigns it to an AST program node, and returns the evaluated node.
-func testEval(input string) object.Object {
-
-	l := lexer.New(input)
-	p := parser.New(l)
-	program := p.ParseProgram()
-
-	return Eval(program)
 }
 
 // testIntegerObject fails if the expected type or value of the evaluated object isn't the actual type or value
@@ -62,4 +72,87 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	}
 
 	return true
+}
+
+// TestEvalBooleanExpression tests the evaluation of Boolean expressions
+func TestEvalBooleanExpression(t *testing.T) {
+
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true", true},
+		{"false", false},
+		{"5 < 10", true},
+		{"5 > 10", false},
+		{"10 < 5", false},
+		{"10 > 5", true},
+		{"1 < 1", false},
+		{"1 > 1", false},
+		{"4 == 4", true},
+		{"4 != 4", false},
+		{"4 == 5", false},
+		{"4 != 5", true},
+		{"true == true", true},
+		{"false == false", true},
+		{"true == false", false},
+		{"true != false", true},
+		{"false != true", true},
+		{"(3 < 6) == true", true},
+		{"(3 > 6) == false", true},
+		{"(3 > 6) == true", false},
+		{"(3 < 6) == false", false},
+	}
+
+	for _, tt := range tests {
+
+		evaluated := testEval(tt.input)
+
+		testBooleanObject(t, evaluated, tt.expected)
+	}
+}
+
+// testBooleanObject tests Boolean objects for type and value
+func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
+
+	result, ok := obj.(*object.Boolean)
+
+	if !ok {
+
+		t.Errorf("Object is not a Boolean. got=%T (%+v)", obj, obj)
+
+		return false
+	}
+
+	if result.Value != expected {
+
+		t.Errorf("Object has wrong value. Got=%t, want=%t", result.Value, expected)
+
+		return false
+	}
+
+	return true
+}
+
+// TestNotOperator tests the evaluation of the ! prefix expression operator
+func TestNotOperator(t *testing.T) {
+
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"!true", false},
+		{"!false", true},
+		{"!5", false},
+		{"!!true", true},
+		{"!!false", false},
+		{"!!5", true},
+	}
+
+	for _, tt := range tests {
+
+		evaluated := testEval(tt.input)
+
+		testBooleanObject(t, evaluated, tt.expected)
+	}
 }
