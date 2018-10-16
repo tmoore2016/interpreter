@@ -156,3 +156,48 @@ func TestNotOperator(t *testing.T) {
 		testBooleanObject(t, evaluated, tt.expected)
 	}
 }
+
+// TestIfElseExpressions tests the evaluation of If/Else conditionals
+func TestIfElseExpressions(t *testing.T) {
+
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if (true) { 10 }", 10},
+		{"if (false) { 10 }", nil},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+		{"if (1 == 2) { 5 } else { 10 }", 10},
+	}
+
+	for _, tt := range tests {
+
+		evaluated := testEval(tt.input)
+
+		integer, ok := tt.expected.(int)
+
+		// If actual integer is expected integer, test the integer object
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+
+			// If a conditional doesn't evaluate to a value, it should return NULL.
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+// testNullObject confirms that an object is NULL, returns true.
+func testNullObject(t *testing.T, obj object.Object) bool {
+	if obj != NULL {
+
+		t.Errorf("Expected NULL, Object is not NULL. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	return true
+}
