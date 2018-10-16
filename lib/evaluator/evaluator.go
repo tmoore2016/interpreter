@@ -56,6 +56,14 @@ func Eval(node ast.Node) object.Object {
 		right := Eval(node.Right)
 		return evalInfixExpression(node.Operator, left, right)
 
+	// AST block statement evaluates the primary or alternative (else) consequence of an If Expression
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
+
+	// AST if expression evaluates the If or If/Else expression node
+	case *ast.IfExpression:
+		return evalIfExpression(node)
+
 	}
 
 	return nil
@@ -160,6 +168,7 @@ func evalInfixExpression(
 	}
 }
 
+// evalIntegerInfixExpression evaluates the operator of an infix expression.
 func evalIntegerInfixExpression(
 	operator string,
 	left, right object.Object,
@@ -195,5 +204,43 @@ func evalIntegerInfixExpression(
 
 	default:
 		return NULL
+	}
+}
+
+// evalIfExpression evaluates the conditions of an If or If/Else expression
+func evalIfExpression(ie *ast.IfExpression) object.Object {
+
+	condition := Eval(ie.Condition)
+
+	// Condition is truthy, not null or false, return primary consequence
+	if isTruthy(condition) {
+		return Eval(ie.Consequence)
+
+		// If alternative consequence (else) applies, return that instead
+	} else if ie.Alternative != nil {
+		return Eval(ie.Alternative)
+
+		// If neither primary or alternative consequence applies, return NULL
+	} else {
+		return NULL
+	}
+}
+
+// isTruthy defines what truthy is: not NULL or FALSE
+func isTruthy(obj object.Object) bool {
+
+	switch obj {
+
+	case NULL:
+		return false
+
+	case TRUE:
+		return true
+
+	case FALSE:
+		return false
+
+	default:
+		return true
 	}
 }
