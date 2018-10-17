@@ -232,3 +232,66 @@ func TestReturnStatements(t *testing.T) {
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 }
+
+// TestErrorHandling tests the evaluation of error objects and error message handling
+func TestErrorHandling(t *testing.T) {
+
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{
+			"8 + false;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"8 + true; 8;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"-true",
+			"unknown operator: -BOOLEAN",
+		},
+		{
+			"false + true",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"8; true + false; 8",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"if (8 > 6) { true + false; }",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			`
+			if (10 > 1) {
+				if (10 > 1) {
+					return true + false;
+				}
+
+				return 1;
+			}
+			`,
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		errObj, ok := evaluated.(*object.Error)
+
+		// Error! No error detected!
+		if !ok {
+			t.Errorf("No error object returned. got=%T(%+v", evaluated, evaluated)
+			continue
+		}
+
+		// Actual error message doesn't match expected error message.
+		if errObj.Message != tt.expectedMessage {
+			t.Errorf("Wrong error message. Expected=%q, got =%q", tt.expectedMessage, errObj.Message)
+		}
+	}
+}
