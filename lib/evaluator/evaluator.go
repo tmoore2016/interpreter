@@ -29,7 +29,11 @@ func Eval(node ast.Node) object.Object {
 
 	// AST Program node is the top AST node, all AST statements below it are evaluated and returned as objects
 	case *ast.Program:
-		return evalStatements(node.Statements)
+		return evalProgram(node)
+
+	// AST block statement evaluates the primary or alternative (else) consequence of an If Expression
+	case *ast.BlockStatement:
+		return evalBlockStatement(node)
 
 	// AST ExpressionStatement node is the top node for all expression statements and returns expressions
 	case *ast.ExpressionStatement:
@@ -56,30 +60,51 @@ func Eval(node ast.Node) object.Object {
 		right := Eval(node.Right)
 		return evalInfixExpression(node.Operator, left, right)
 
-	// AST block statement evaluates the primary or alternative (else) consequence of an If Expression
-	case *ast.BlockStatement:
-		return evalStatements(node.Statements)
-
 	// AST if expression evaluates the If or If/Else expression node
 	case *ast.IfExpression:
 		return evalIfExpression(node)
 
+	// AST Return statement evaluates the return statement value and creates a Return Value object
+	case *ast.ReturnStatement:
+		val := Eval(node.ReturnValue)
+		return &object.ReturnValue{Value: val}
 	}
 
 	return nil
 }
 
-// evalStatements evaluates all AST statement nodes as objects
-func evalStatements(stmts []ast.Statement) object.Object {
+// evalProgram evaluates all AST program statement nodes as objects from evalProgramStatements
+func evalProgram(program *ast.Program) object.Object {
 
 	var result object.Object
 
 	// Evaluate all statements in the AST
-	for _, statement := range stmts {
+	for _, statement := range program.Statements {
 		result = Eval(statement)
+
+		// If the last object evaluated was a ReturnValue, stop and return the unwrapped value
+		if returnValue, ok := result.(*object.ReturnValue); ok {
+			return returnValue.Value
+		}
 	}
 
 	// Return AST statements as objects
+	return result
+}
+
+// evalBlockStatement evaluates AST block statements such as the primary and alternative consequences of an If expression
+func evalBlockStatement(block *ast.BlockStatement) object.Object {
+	var result object.Object
+
+	for _, statement := range block.Statements {
+		result = Eval(statement)
+
+		// If the block statement contains a Return Value Object, stop and return the Return object
+		if result != nil && result.Type() == object.RETURN_VALUE_OBJ {
+			return result
+		}
+	}
+
 	return result
 }
 
