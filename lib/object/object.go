@@ -18,9 +18,11 @@ type ObjectType string
 
 // Strings for Doorkey data types
 const (
-	INTEGER_OBJ = "INTEGER"
-	BOOLEAN_OBJ = "BOOLEAN"
-	NULL_OBJ    = "NULL"
+	INTEGER_OBJ      = "INTEGER"
+	BOOLEAN_OBJ      = "BOOLEAN"
+	NULL_OBJ         = "NULL"
+	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for returns
+	ERROR_OBJ        = "ERROR"
 )
 
 // Object represents each data type with a type and value
@@ -70,4 +72,34 @@ func (n *Null) Type() ObjectType {
 // Inspect AST empty node and return a null
 func (n *Null) Inspect() string {
 	return "null"
+}
+
+// ReturnValue structure for Return value objects
+type ReturnValue struct {
+	Value Object
+}
+
+// Type ReturnValue Object
+func (rv *ReturnValue) Type() ObjectType {
+	return RETURN_VALUE_OBJ
+}
+
+// Inspect ReturnValue object value
+func (rv *ReturnValue) Inspect() string {
+	return rv.Value.Inspect()
+}
+
+// Error structure for error message objects
+type Error struct {
+	Message string
+}
+
+// Type of object: ERROR_OBJ
+func (e *Error) Type() ObjectType {
+	return ERROR_OBJ
+}
+
+// Inspect Error returns error message (ERROR_OBJ value)
+func (e *Error) Inspect() string {
+	return "ERROR: " + e.Message
 }
