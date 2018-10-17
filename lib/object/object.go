@@ -18,9 +18,10 @@ type ObjectType string
 
 // Strings for Doorkey data types
 const (
-	INTEGER_OBJ = "INTEGER"
-	BOOLEAN_OBJ = "BOOLEAN"
-	NULL_OBJ    = "NULL"
+	INTEGER_OBJ      = "INTEGER"
+	BOOLEAN_OBJ      = "BOOLEAN"
+	NULL_OBJ         = "NULL"
+	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for returns
 )
 
 // Object represents each data type with a type and value
@@ -70,4 +71,19 @@ func (n *Null) Type() ObjectType {
 // Inspect AST empty node and return a null
 func (n *Null) Inspect() string {
 	return "null"
+}
+
+// ReturnValue structure for Return value objects
+type ReturnValue struct {
+	Value Object
+}
+
+// Type ReturnValue Object
+func (rv *ReturnValue) Type() ObjectType {
+	return RETURN_VALUE_OBJ
+}
+
+// Inspect ReturnValue object value
+func (rv *ReturnValue) Inspect() string {
+	return rv.Value.Inspect()
 }
