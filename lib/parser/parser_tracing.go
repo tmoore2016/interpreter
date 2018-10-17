@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-var traceLevel int // = 0
+var traceLevel int = 0
 
 // placeholder string for identLevel
 const traceIdentPlaceholder string = "\t"
