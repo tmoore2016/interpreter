@@ -17,7 +17,7 @@ import (
 func main() {
 	user, err := user.Current()
 	if err != nil {
-		panic(err)
+		panic(err) // End program with stack trace
 	}
 
 	fmt.Printf(" Hello %s,", user.Username)

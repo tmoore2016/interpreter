@@ -21,8 +21,9 @@ func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()
+	env := object.NewEnvironment()
 
-	return Eval(program)
+	return Eval(program, env)
 }
 
 // TestEvalIntegerExpressions checks the type and value of integer input
@@ -240,6 +241,7 @@ func TestErrorHandling(t *testing.T) {
 		input           string
 		expectedMessage string
 	}{
+		// input, expected error message
 		{
 			"8 + false;",
 			"type mismatch: INTEGER + BOOLEAN",
@@ -276,6 +278,10 @@ func TestErrorHandling(t *testing.T) {
 			`,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{
+			"foobar",
+			"Identifier not found: foobar",
+		},
 	}
 
 	for _, tt := range tests {
@@ -293,5 +299,24 @@ func TestErrorHandling(t *testing.T) {
 		if errObj.Message != tt.expectedMessage {
 			t.Errorf("Wrong error message. Expected=%q, got =%q", tt.expectedMessage, errObj.Message)
 		}
+	}
+}
+
+// TestLetStatements tests let statement evaluation
+func TestLetStatements(t *testing.T) {
+
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 8; a;", 8},
+		{"let a = 8 * 8; a;", 64},
+		{"let a = 8; let b = a; b;", 8},
+		{"let a = 8; let b = a; let c = a + b + 8; c;", 24},
+	}
+
+	for _, tt := range tests {
+
+		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
 }
