@@ -24,22 +24,22 @@ var (
 )
 
 // Eval evaluates each AST node by sending the ast.Node interface as input to the object package
-func Eval(node ast.Node) object.Object {
+func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	// Traverse the AST nodes and act according to type
 	switch node := node.(type) {
 
 	// AST Program node is the top AST node, all AST statements below it are evaluated and returned as objects
 	case *ast.Program:
-		return evalProgram(node)
+		return evalProgram(node, env)
 
 	// AST block statement evaluates the primary or alternative (else) consequence of an If Expression
 	case *ast.BlockStatement:
-		return evalBlockStatement(node)
+		return evalBlockStatement(node, env)
 
 	// AST ExpressionStatement node is the top node for all expression statements and returns expressions
 	case *ast.ExpressionStatement:
-		return Eval(node.Expression)
+		return Eval(node.Expression, env)
 
 	// Expressions:
 
@@ -53,7 +53,7 @@ func Eval(node ast.Node) object.Object {
 
 	// AST prefix expression node evaluates the right side of the prefix expression, and then evaluates the prefix expression operator
 	case *ast.PrefixExpression:
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
 		}
@@ -61,11 +61,11 @@ func Eval(node ast.Node) object.Object {
 
 	// AST Infix expression evaluates the left and right node expressions, and then evaluates the operator
 	case *ast.InfixExpression:
-		left := Eval(node.Left)
+		left := Eval(node.Left, env)
 		if isError(left) {
 			return left
 		}
-		right := Eval(node.Right)
+		right := Eval(node.Right, env)
 		if isError(right) {
 			return right
 		}
@@ -73,11 +73,11 @@ func Eval(node ast.Node) object.Object {
 
 	// AST if expression evaluates the If or If/Else expression node
 	case *ast.IfExpression:
-		return evalIfExpression(node)
+		return evalIfExpression(node, env)
 
 	// AST Return statement evaluates the return statement value and creates a Return Value object
 	case *ast.ReturnStatement:
-		val := Eval(node.ReturnValue)
+		val := Eval(node.ReturnValue, env)
 		if isError(val) {
 			return val
 		}
@@ -85,24 +85,26 @@ func Eval(node ast.Node) object.Object {
 
 	// AST Let statement evaluates a let statement identifier and value.
 	case *ast.LetStatement:
-		val := Eval(node.Value)
+		val := Eval(node.Value, env)
 
 		if isError(val) {
 			return val
 		}
+
+		env.Set(node.Name.Value, val)
 	}
 
 	return nil
 }
 
 // evalProgram evaluates all AST program statement nodes as objects from evalProgramStatements
-func evalProgram(program *ast.Program) object.Object {
+func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 
 	var result object.Object
 
 	// Evaluate all statements in the AST
 	for _, statement := range program.Statements {
-		result = Eval(statement)
+		result = Eval(statement, env)
 
 		switch result := result.(type) {
 
@@ -121,12 +123,12 @@ func evalProgram(program *ast.Program) object.Object {
 }
 
 // evalBlockStatement evaluates AST block statements such as the primary and alternative consequences of an If expression
-func evalBlockStatement(block *ast.BlockStatement) object.Object {
+func evalBlockStatement(block *ast.BlockStatement, env *object.Environment) object.Object {
 	var result object.Object
 
 	// For each block statement in range
 	for _, statement := range block.Statements {
-		result = Eval(statement)
+		result = Eval(statement, env)
 
 		// If the block statement contains a Return Value Object or an Error object, stop and return
 		if result != nil {
@@ -289,20 +291,20 @@ func evalIntegerInfixExpression(
 }
 
 // evalIfExpression evaluates the conditions of an If or If/Else expression
-func evalIfExpression(ie *ast.IfExpression) object.Object {
+func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
 
-	condition := Eval(ie.Condition)
+	condition := Eval(ie.Condition, env)
 	if isError(condition) {
 		return condition
 	}
 
 	// Condition is truthy, not null or false, return primary consequence
 	if isTruthy(condition) {
-		return Eval(ie.Consequence)
+		return Eval(ie.Consequence, env)
 
 		// If alternative consequence (else) applies, return that instead
 	} else if ie.Alternative != nil {
-		return Eval(ie.Alternative)
+		return Eval(ie.Alternative, env)
 
 		// If neither primary or alternative consequence applies, return NULL
 	} else {

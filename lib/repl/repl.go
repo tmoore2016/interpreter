@@ -14,6 +14,7 @@ import (
 
 	"github.com/tmoore2016/interpreter/lib/evaluator"
 	"github.com/tmoore2016/interpreter/lib/lexer"
+	"github.com/tmoore2016/interpreter/lib/object"
 	"github.com/tmoore2016/interpreter/lib/parser"
 )
 
@@ -24,6 +25,7 @@ const PROMPT = ">> "
 // Read from the input source until newline, pass the string to lexer, parse the lexer output, print the AST, evaluate the AST and print the eval.
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Printf(PROMPT)
@@ -45,7 +47,7 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 		// Evaluate the input and write as output
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, program.String())
 			io.WriteString(out, "\n")
