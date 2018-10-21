@@ -82,6 +82,14 @@ func Eval(node ast.Node) object.Object {
 			return val
 		}
 		return &object.ReturnValue{Value: val}
+
+	// AST Let statement evaluates a let statement identifier and value.
+	case *ast.LetStatement:
+		val := Eval(node.Value)
+
+		if isError(val) {
+			return val
+		}
 	}
 
 	return nil
