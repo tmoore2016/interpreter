@@ -49,18 +49,16 @@ func Start(in io.Reader, out io.Writer) {
 		// Evaluate the input and write as output
 		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
-			io.WriteString(out, program.String())
+			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
 		}
-
-		io.WriteString(out, evaluated.Inspect())
-		io.WriteString(out, "\n")
 	}
 }
 
 // printParserErrors writes any parser errors found
 func printParserErrors(out io.Writer, errors []string) {
 	io.WriteString(out, "Uh oh, parser error(s) detected:\n")
+
 	for _, msg := range errors {
 		io.WriteString(out, "\t"+msg+"\n")
 	}
