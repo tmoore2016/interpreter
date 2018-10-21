@@ -83,7 +83,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return &object.ReturnValue{Value: val}
 
-	// AST Let statement evaluates a let statement identifier and value.
+	// LetStatement evaluates an AST let statement identifier and value and sets the environment association.
 	case *ast.LetStatement:
 		val := Eval(node.Value, env)
 
@@ -91,7 +91,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 
+		// Let statements can set an environment association
 		env.Set(node.Name.Value, val)
+
+	// Identifier evaluates and AST identifier and returns the environment value
+	case *ast.Identifier:
+		return evalIdentifier(node, env)
 	}
 
 	return nil
@@ -329,4 +334,19 @@ func isTruthy(obj object.Object) bool {
 	default:
 		return true
 	}
+}
+
+// evalIdentifier evaluates an AST identifier node and retrieves its value from the environment association, if it exists.
+func evalIdentifier(
+	node *ast.Identifier,
+	env *object.Environment,
+) object.Object {
+
+	val, ok := env.Get(node.Value)
+
+	if !ok {
+		return newError("Identifier not found: " + node.Value)
+	}
+
+	return val
 }
