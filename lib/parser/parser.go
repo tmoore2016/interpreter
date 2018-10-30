@@ -352,8 +352,8 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 
 // noPrefixParseFnError appends invalid type information for prefix expressions to parser errors
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("No prefix parse function for %s found", t) // If there isn't a valid prefix expression type, throw an error and return the actual type.
-	p.errors = append(p.errors, msg)                               // Append error message to parser errors
+	msg := fmt.Sprintf("Invalid prefix operator. Unexpected type: %s", t) // If there isn't a valid prefix expression type, throw an error and return the actual type.
+	p.errors = append(p.errors, msg)                                      // Append error message to parser errors
 }
 
 // parseInfixExpression creates an infix expression node

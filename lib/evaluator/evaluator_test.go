@@ -252,19 +252,19 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			"-true",
-			"unknown operator: -BOOLEAN",
+			"Illegal operation: -BOOLEAN",
 		},
 		{
 			"false + true",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			"8; true + false; 8",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			"if (8 > 6) { true + false; }",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			`
@@ -276,7 +276,7 @@ func TestErrorHandling(t *testing.T) {
 				return 1;
 			}
 			`,
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			"foobar",

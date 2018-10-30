@@ -188,7 +188,7 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 
 	// Create new error object if unkown prefix expression is used
 	default:
-		return newError("unknown operator: %s%s", operator, right.Type())
+		return newError("Illegal prefix operator: %s%s", operator, right.Type())
 	}
 }
 
@@ -216,7 +216,7 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 
 	// Return error if the right side expression isn't an integer
 	if right.Type() != object.INTEGER_OBJ {
-		return newError("unknown operator: -%s", right.Type())
+		return newError("Illegal prefix operation, expected integer, received: -%s", right.Type())
 	}
 
 	value := right.(*object.Integer).Value
@@ -251,7 +251,7 @@ func evalInfixExpression(
 
 	// When left or right side of the infix expression isn't an integer, return new error
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError("Illegal infix expression, expected integer-operator-integer, received: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -291,7 +291,7 @@ func evalIntegerInfixExpression(
 
 	// Return new error object if unsupported operator is used
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError("Invalid Infix Expression operator, expected ('+' , '-', '*', '/', '<', '>', '==', '!='),/n received: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
