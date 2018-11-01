@@ -313,7 +313,7 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 
 		// If neither primary or alternative consequence applies, return NULL
 	} else {
-		return object.Value
+		return NULL
 	}
 }
 
