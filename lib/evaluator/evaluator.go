@@ -26,10 +26,10 @@ var (
 // Eval evaluates each AST node by sending the ast.Node interface as input to the object package
 func Eval(node ast.Node, env *object.Environment) object.Object {
 
-	// Traverse the AST nodes and act according to type
+	// Traverse each AST node and act according to type.
 	switch node := node.(type) {
 
-	// AST Program node is the top AST node, all AST statements below it are evaluated and returned as objects
+	// AST Program node is the top AST node, all AST statements are evaluated and returned as objects.
 	case *ast.Program:
 		return evalProgram(node, env)
 
@@ -313,7 +313,7 @@ func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Obje
 
 		// If neither primary or alternative consequence applies, return NULL
 	} else {
-		return NULL
+		return object.Value
 	}
 }
 
@@ -331,7 +331,7 @@ func isTruthy(obj object.Object) bool {
 	case FALSE:
 		return false
 
-	default:
+	default: // I don't think this is working as intended. If something isn't NULL or FALSE it should be true, but an identifier assigned a value isn't assigned true or false because it never passes through the Boolean check.
 		return true
 	}
 }
