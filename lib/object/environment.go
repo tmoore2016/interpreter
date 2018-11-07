@@ -14,18 +14,22 @@ func NewEnvironment() *Environment {
 
 	s := make(map[string]Object)
 
-	return &Environment{store: s}
+	return &Environment{store: s, outer: nil}
 }
 
-// Environment structure is a hash table that associates a string (name) with an object
+// Environment structure is a hash table that associates a string (name) with an object. The outer environment allows one environment to wrap another.
 type Environment struct {
 	store map[string]Object
+	outer *Environment
 }
 
 // Get returns an object if the name is associated with an environment (map)
 func (e *Environment) Get(name string) (Object, bool) {
-
 	obj, ok := e.store[name]
+
+	if !ok && e.outer != nil {
+		obj, ok = e.outer.Get(name)
+	}
 
 	return obj, ok
 }
@@ -36,4 +40,12 @@ func (e *Environment) Set(name string, val Object) Object {
 	e.store[name] = val
 
 	return val
+}
+
+// NewEnclosedEnvironment allows one environment to wrap another.
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+	env := NewEnvironment()
+	env.outer = outer
+
+	return env
 }
