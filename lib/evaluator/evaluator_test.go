@@ -361,7 +361,7 @@ func TestFunctionApplication(t *testing.T) {
 		{"let yourNumber = fn(x) { return x; }; yourNumber(16);", 16},
 		{"let double = fn(x) { x * 2; }; double(18);", 36},
 		{"let add = fn(x, y) { x + y; }; add(16, 14);", 30},
-		{"let addTwice = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"let addTwice = fn(x, y) { x + y; }; addTwice(5 + 5, addTwice(5, 5));", 20},
 		{"fn(x) { x; }(8)", 8},
 	}
 

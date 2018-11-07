@@ -110,10 +110,13 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(function) {
 			return function
 		}
+
 		args := evalExpressions(node.Arguments, env)
 		if len(args) == 1 && isError(args[0]) {
 			return args[0]
 		}
+
+		return applyFunction(function, args)
 	}
 
 	return nil
@@ -386,4 +389,43 @@ func evalExpressions(
 	}
 
 	return result
+}
+
+// applyFunction verifies a function object and converts the function parameter to *object.Function to access the .Env and .Body fields.
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+
+	if !ok {
+		return newError("Not a function, received type: %s", fn.Type())
+	}
+
+	extendedEnv := extendFunctionEnv(function, args)
+
+	evaluated := Eval(function.Body, extendedEnv)
+
+	return unwrapReturnValue(evaluated)
+}
+
+// extendFunctionEnv creates a new *object.Environment that's enclosed by the function's environment. This allows the function's arguments to bind to the function's parameter names without overwriting the original environment.
+func extendFunctionEnv(
+	fn *object.Function,
+	args []object.Object,
+) *object.Environment {
+
+	env := object.NewEnclosedEnvironment(fn.Env)
+
+	for paramIdx, param := range fn.Parameters {
+		env.Set(param.Value, args[paramIdx])
+	}
+
+	return env
+}
+
+// unwrapReturnValue unwraps the outer environment for *object.ReturnValues so that evalBlockStatement will evaluate the entire block statement and not just the outer function.
+func unwrapReturnValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+
+	return obj
 }
