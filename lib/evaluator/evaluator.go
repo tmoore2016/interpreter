@@ -94,9 +94,26 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		// Let statements can set an environment association
 		env.Set(node.Name.Value, val)
 
-	// Identifier evaluates and AST identifier and returns the environment value
+	// Identifier evaluates an AST identifier and returns the environment value
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
+
+	// FunctionLiteral evaluates an AST function literal for params, body, and environment.
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: params, Env: env, Body: body}
+
+	// CallExpression evaluates a list of expressions from a function as arguments, the process stops if there is an error.
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
 	}
 
 	return nil
@@ -331,7 +348,7 @@ func isTruthy(obj object.Object) bool {
 	case FALSE:
 		return false
 
-	default: // I don't think this is working as intended. If something isn't NULL or FALSE it should be true, but an identifier assigned a value isn't assigned true or false because it never passes through the Boolean check.
+	default: // This isn't working as I'd like. If something isn't NULL or FALSE it should be true, but an identifier assigned a value isn't true or false in Doorkey because its never checked as a Boolean.
 		return true
 	}
 }
@@ -349,4 +366,24 @@ func evalIdentifier(
 	}
 
 	return val
+}
+
+// evalExpressions evaluates ast.Expressions from a function in the context of the current environment
+func evalExpressions(
+	exps []ast.Expression,
+	env *object.Environment,
+) []object.Object {
+	var result []object.Object
+
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+
+		result = append(result, evaluated)
+	}
+
+	return result
 }
