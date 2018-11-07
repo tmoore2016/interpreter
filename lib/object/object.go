@@ -10,7 +10,11 @@ By following "Writing an Interpreter in Go" by Thorsten Ball, https://interprete
 package object
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
+
+	"github.com/tmoore2016/interpreter/lib/ast"
 )
 
 // ObjectType represents the Doorkey data types
@@ -21,7 +25,8 @@ const (
 	INTEGER_OBJ      = "INTEGER"
 	BOOLEAN_OBJ      = "BOOLEAN"
 	NULL_OBJ         = "NULL"
-	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for returns
+	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for return values
+	FUNCTION_OBJ     = "FUNCTION"
 	ERROR_OBJ        = "ERROR"
 )
 
@@ -87,6 +92,41 @@ func (rv *ReturnValue) Type() ObjectType {
 // Inspect ReturnValue object value
 func (rv *ReturnValue) Inspect() string {
 	return rv.Value.Inspect()
+}
+
+// Structure for Function object
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment // A pointer to the particular environment
+}
+
+// Identify the Function object type
+func (f *Function) Type() ObjectType {
+	return FUNCTION_OBJ
+}
+
+// Inspect Function and parameters, recreate function string.
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	// get function parameters as array and string.
+	params := []string{}
+
+	for _, p := range f.Parameters {
+
+		params = append(params, p.String())
+	}
+
+	// Adds the function notation, parameters, and function body to the object
+	out.WriteString("fn")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
 }
 
 // Error structure for error message objects

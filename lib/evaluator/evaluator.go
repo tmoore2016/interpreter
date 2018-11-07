@@ -26,10 +26,10 @@ var (
 // Eval evaluates each AST node by sending the ast.Node interface as input to the object package
 func Eval(node ast.Node, env *object.Environment) object.Object {
 
-	// Traverse the AST nodes and act according to type
+	// Traverse each AST node and act according to type.
 	switch node := node.(type) {
 
-	// AST Program node is the top AST node, all AST statements below it are evaluated and returned as objects
+	// AST Program node is the top AST node, all AST statements are evaluated and returned as objects.
 	case *ast.Program:
 		return evalProgram(node, env)
 
@@ -94,9 +94,29 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		// Let statements can set an environment association
 		env.Set(node.Name.Value, val)
 
-	// Identifier evaluates and AST identifier and returns the environment value
+	// Identifier evaluates an AST identifier and returns the environment value
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
+
+	// FunctionLiteral evaluates an AST function literal for params, body, and environment.
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: params, Env: env, Body: body}
+
+	// CallExpression evaluates a list of expressions from a function as arguments, the process stops if there is an error.
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+
+		return applyFunction(function, args)
 	}
 
 	return nil
@@ -188,7 +208,7 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 
 	// Create new error object if unkown prefix expression is used
 	default:
-		return newError("unknown operator: %s%s", operator, right.Type())
+		return newError("Illegal prefix operator: %s%s", operator, right.Type())
 	}
 }
 
@@ -216,7 +236,7 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 
 	// Return error if the right side expression isn't an integer
 	if right.Type() != object.INTEGER_OBJ {
-		return newError("unknown operator: -%s", right.Type())
+		return newError("Illegal prefix operation, expected integer, received: -%s", right.Type())
 	}
 
 	value := right.(*object.Integer).Value
@@ -251,7 +271,7 @@ func evalInfixExpression(
 
 	// When left or right side of the infix expression isn't an integer, return new error
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError("Illegal infix expression, expected integer-operator-integer, received: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -291,7 +311,7 @@ func evalIntegerInfixExpression(
 
 	// Return new error object if unsupported operator is used
 	default:
-		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+		return newError("Invalid Infix Expression operator, expected ('+' , '-', '*', '/', '<', '>', '==', '!='),/n received: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -331,7 +351,7 @@ func isTruthy(obj object.Object) bool {
 	case FALSE:
 		return false
 
-	default:
+	default: // This isn't working as I'd like. If something isn't NULL or FALSE it should be true, but an identifier assigned a value isn't true or false in Doorkey because its never checked as a Boolean.
 		return true
 	}
 }
@@ -349,4 +369,63 @@ func evalIdentifier(
 	}
 
 	return val
+}
+
+// evalExpressions evaluates ast.Expressions from a function in the context of the current environment
+func evalExpressions(
+	exps []ast.Expression,
+	env *object.Environment,
+) []object.Object {
+	var result []object.Object
+
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+
+		result = append(result, evaluated)
+	}
+
+	return result
+}
+
+// applyFunction verifies a function object and converts the function parameter to *object.Function to access the .Env and .Body fields.
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+
+	if !ok {
+		return newError("Not a function, received type: %s", fn.Type())
+	}
+
+	extendedEnv := extendFunctionEnv(function, args)
+
+	evaluated := Eval(function.Body, extendedEnv)
+
+	return unwrapReturnValue(evaluated)
+}
+
+// extendFunctionEnv creates a new *object.Environment that's enclosed by the function's environment. This allows the function's arguments to bind to the function's parameter names without overwriting the original environment.
+func extendFunctionEnv(
+	fn *object.Function,
+	args []object.Object,
+) *object.Environment {
+
+	env := object.NewEnclosedEnvironment(fn.Env)
+
+	for paramIdx, param := range fn.Parameters {
+		env.Set(param.Value, args[paramIdx])
+	}
+
+	return env
+}
+
+// unwrapReturnValue unwraps the outer environment for *object.ReturnValues so that evalBlockStatement will evaluate the entire block statement and not just the outer function.
+func unwrapReturnValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+
+	return obj
 }

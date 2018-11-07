@@ -20,7 +20,7 @@ type Token struct {
 
 // Constants
 const (
-	ILLEGAL = "ILLEGAL" // Unknown Token/Character
+	ILLEGAL = "ILLEGAL" // Invalid or unknown Token/Character
 	EOF     = "EOF"     // End of file
 
 	// Identifiers and literals

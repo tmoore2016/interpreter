@@ -252,19 +252,19 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			"-true",
-			"unknown operator: -BOOLEAN",
+			"Illegal operation: -BOOLEAN",
 		},
 		{
 			"false + true",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			"8; true + false; 8",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			"if (8 > 6) { true + false; }",
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			`
@@ -276,7 +276,7 @@ func TestErrorHandling(t *testing.T) {
 				return 1;
 			}
 			`,
-			"unknown operator: BOOLEAN + BOOLEAN",
+			"Illegal operation: BOOLEAN + BOOLEAN",
 		},
 		{
 			"foobar",
@@ -319,4 +319,65 @@ func TestLetStatements(t *testing.T) {
 
 		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
+}
+
+func TestFunctionObject(t *testing.T) {
+
+	// Test input function, () is parameters, {} is function statement
+	input := "fn(x) { x + 2; };"
+
+	expectedBody := "(x + 2)"
+
+	evaluated := testEval(input)
+
+	fn, ok := evaluated.(*object.Function)
+
+	// Object isn't a function, return an error with actual type and value.
+	if !ok {
+		t.Fatalf("Object is not a function. Got=%T (%+v)", evaluated, evaluated)
+	}
+
+	// Only 1 parameter in input, return error with actual parameters if more than 1.
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("Function has the wrong parameters. Parameters=%+v", fn.Parameters)
+	}
+
+	if fn.Parameters[0].String() != "x" {
+		t.Fatalf("Parameter is not 'x'. Got%q", fn.Parameters[0])
+	}
+
+	if fn.Body.String() != expectedBody {
+
+		t.Fatalf("Body is not %q. Got = %q", expectedBody, fn.Body.String())
+	}
+}
+
+func TestFunctionApplication(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let myNumber = fn(x) { x; }; myNumber(15);", 15},
+		{"let yourNumber = fn(x) { return x; }; yourNumber(16);", 16},
+		{"let double = fn(x) { x * 2; }; double(18);", 36},
+		{"let add = fn(x, y) { x + y; }; add(16, 14);", 30},
+		{"let addTwice = fn(x, y) { x + y; }; addTwice(5 + 5, addTwice(5, 5));", 20},
+		{"fn(x) { x; }(8)", 8},
+	}
+
+	for _, tt := range tests {
+		testIntegerObject(t, testEval(tt.input), tt.expected)
+	}
+}
+
+func TestClosures(t *testing.T) {
+	input := `
+	let newAdder = fn(x) {fn(y) { x + y };
+	};
+
+	let addTwo = newAdder(2);
+	addTwo(2);
+	`
+
+	testIntegerObject(t, testEval(input), 4)
 }

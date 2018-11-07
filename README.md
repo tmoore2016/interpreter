@@ -11,4 +11,7 @@ Currently working on:
 
 ~~Chapter 2: Parsing~~
 
-Chapter 3: Evaluation
+~~Chapter 3: Evaluation~~
+
+Chapter 4: Extending the Interpreter
+
