@@ -34,6 +34,8 @@ func TestNextToken(t *testing.T) {
 			}
 		10 == 10;
 		10 != 9;
+		"newString"
+		"new string"
 	`
 
 	// A collection of tests
@@ -41,7 +43,7 @@ func TestNextToken(t *testing.T) {
 		expectedType    token.TokenType
 		expectedLiteral string
 	}{
-		// Test that tokens are assigned to proper character
+		// Test that tokens are assigned to proper type
 		// =+(){},;
 		{token.ASSIGN, "="},
 		{token.PLUS, "+"},
@@ -142,6 +144,10 @@ func TestNextToken(t *testing.T) {
 		{token.NOT_EQ, "!="},
 		{token.INT, "9"},
 		{token.SEMICOLON, ";"},
+
+		// "newString", "new string"
+		{token.STRING, "newString"},
+		{token.STRING, "new string"},
 
 		// description
 		// {token., },
