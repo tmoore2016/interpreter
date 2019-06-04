@@ -23,6 +23,7 @@ type ObjectType string
 // Strings for Doorkey data types
 const (
 	INTEGER_OBJ      = "INTEGER"
+	STRING_OBJ       = "STRING"
 	BOOLEAN_OBJ      = "BOOLEAN"
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for return values
@@ -49,6 +50,21 @@ func (i *Integer) Inspect() string {
 // Type Integer ObjectType
 func (i *Integer) Type() ObjectType {
 	return INTEGER_OBJ
+}
+
+// String type object.String
+type String struct {
+	Value string
+}
+
+// Type string ObjectType
+func (s *String) Type() ObjectType {
+	return STRING_OBJ
+}
+
+// Inspect AST string node and return its value
+func (s *String) Inspect() string {
+	return s.Value
 }
 
 // Boolean struct wraps a bool value in object.Boolean

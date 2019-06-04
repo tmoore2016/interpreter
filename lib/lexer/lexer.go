@@ -112,7 +112,9 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
-
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	//case '':
 	//	tok = newToken(token.ASSIGN, )
 
@@ -170,6 +172,19 @@ func (l *Lexer) readNumber() string {
 		l.readChar() // advance
 	}
 	return l.input[position:l.position] // Send lexer new position input
+}
+
+// Advances the lexer until it encounters a closing " or EOF. Previous characters are part of a string.
+// Add error reporting and character escaping ("hello \"world\"")
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
 }
 
 /*

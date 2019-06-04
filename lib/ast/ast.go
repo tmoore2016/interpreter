@@ -180,6 +180,25 @@ func (il *IntegerLiteral) String() string {
 	return il.Token.Literal
 }
 
+// StringLiteral structure for a String literal expression
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+// StringLiteral assigned to AST expression node
+func (sl *StringLiteral) expressionNode() {}
+
+// TokenLiteral contains the literal type of StringLiteral
+func (sl *StringLiteral) TokenLiteral() string {
+	return sl.Token.Literal
+}
+
+// String writing function for StringLiteral
+func (sl *StringLiteral) String() string {
+	return sl.Token.Literal
+}
+
 // PrefixExpression structure for a prefix expression
 type PrefixExpression struct {
 	Token    token.Token // The prefix token

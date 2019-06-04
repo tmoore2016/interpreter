@@ -75,6 +75,21 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	return true
 }
 
+// TestStringObject fails if the expected object type and value aren't the actual type or value.
+func TestStringObject(t *testing.T) {
+	input := `"Doorkey has strings!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Doorkey has strings!" {
+		t.Errorf("string has wrong value. got=%q", str.Value)
+	}
+}
+
 // TestEvalBooleanExpression tests the evaluation of Boolean expressions
 func TestEvalBooleanExpression(t *testing.T) {
 

@@ -24,8 +24,9 @@ const (
 	EOF     = "EOF"     // End of file
 
 	// Identifiers and literals
-	IDENT = "IDENT" // Name
-	INT   = "INT"   // Integers
+	IDENT  = "IDENT"  // Name
+	INT    = "INT"    // Integers
+	STRING = "STRING" // String type
 
 	// Operators
 	ASSIGN   = "="
