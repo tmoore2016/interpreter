@@ -183,7 +183,7 @@ func (il *IntegerLiteral) String() string {
 // StringLiteral structure for a String literal expression
 type StringLiteral struct {
 	Token token.Token
-	value string
+	Value string
 }
 
 // StringLiteral assigned to AST expression node

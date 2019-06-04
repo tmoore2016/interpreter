@@ -257,6 +257,27 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+// TestStringLiteralExpression will test string literal expressions
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"Doorkey has strings!";`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+
+	if !ok {
+		t.Fatalf("exp not *ast.StringLiteral. got=%T", stmt.Expression)
+	}
+
+	if literal.Value != "Doorkey has strings!" {
+		t.Errorf("literal.Value not %q. got=%q", "Doorkey has strings!", literal.Value)
+	}
+}
+
 // TestParsingPrefixExpressions will test prefix expressions ! and -
 func TestParsingPrefixExpressions(t *testing.T) {
 	// Declare input types, prevents having to rewrite the same test for new input.

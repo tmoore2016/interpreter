@@ -82,6 +82,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn) // Initialize prefixParseFns map
 	p.registerPrefix(token.IDENT, p.parseIdentifier)           // Register an Identifier parsing function
 	p.registerPrefix(token.INT, p.parseIntegerLiteral)         // Register an Integer Literal parsing function
+	p.registerPrefix(token.STRING, p.parseStringLiteral)       // Register a String Literal expression
 	p.registerPrefix(token.NOT, p.parsePrefixExpression)       // Register a ! prefix expression
 	p.registerPrefix(token.MINUS, p.parsePrefixExpression)     // Register a - prefix expression
 	p.registerPrefix(token.TRUE, p.parseBoolean)               // Register a TRUE prefix expression
@@ -301,6 +302,11 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	lit.Value = value
 
 	return lit
+}
+
+// parseStringLiteral parses String Literal expressions, returns the AST identifier and its value as a single string token.
+func (p *Parser) parseStringLiteral() ast.Expression {
+	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 /*
