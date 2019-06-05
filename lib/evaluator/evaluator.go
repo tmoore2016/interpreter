@@ -261,6 +261,10 @@ func evalInfixExpression(
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(operator, left, right)
 
+	// When left and right sides are strings, evaluate a string infix expression
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
+
 	// If infix operator is ==, it will make a pointer comparison between left and right booleans. This works because there are only two Boolean expressions, the vars TRUE and FALSE and they are always in the same memory address. It won't work for integers, but those are compared in the switch statement above.
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
@@ -269,7 +273,7 @@ func evalInfixExpression(
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
 
-	// Create new error object if unrelated types are used
+	// Create new error object if unrelated types are compared
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 
@@ -317,6 +321,21 @@ func evalIntegerInfixExpression(
 	default:
 		return newError("Invalid Infix Expression operator, expected ('+' , '-', '*', '/', '<', '>', '==', '!='),/n received: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+// evalStringInfixExpression evaluates string operations. Currently only concatenation.
+// To add == and != String comparisons, put here and use values rather than pointers.
+func evalStringInfixExpression(
+	operator string,
+	left, right object.Object,
+) object.Object {
+	if operator != "+" {
+		return newError("Invalid operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	return &object.String{Value: leftVal + rightVal}
 }
 
 // evalIfExpression evaluates the conditions of an If or If/Else expression

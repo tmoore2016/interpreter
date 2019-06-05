@@ -90,6 +90,24 @@ func TestStringObject(t *testing.T) {
 	}
 }
 
+// TestStringConcatenation tests if strings can be added via + infix operator
+func TestStringConcatenation(t *testing.T) {
+	input := `"Peanut" + " " + "Butter"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String) // Ok if object type is string
+
+	// Fail if object type is not string
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	// Fail if string value isn't input value
+	if str.Value != "Peanut Butter" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
 // TestEvalBooleanExpression tests the evaluation of Boolean expressions
 func TestEvalBooleanExpression(t *testing.T) {
 
@@ -267,19 +285,19 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			"-true",
-			"Illegal operation: -BOOLEAN",
+			"Illegal prefix operation, expected integer, received: -BOOLEAN",
 		},
 		{
 			"false + true",
-			"Illegal operation: BOOLEAN + BOOLEAN",
+			"Illegal infix expression, expected integer-operator-integer, received: BOOLEAN + BOOLEAN",
 		},
 		{
 			"8; true + false; 8",
-			"Illegal operation: BOOLEAN + BOOLEAN",
+			"Illegal infix expression, expected integer-operator-integer, received: BOOLEAN + BOOLEAN",
 		},
 		{
 			"if (8 > 6) { true + false; }",
-			"Illegal operation: BOOLEAN + BOOLEAN",
+			"Illegal infix expression, expected integer-operator-integer, received: BOOLEAN + BOOLEAN",
 		},
 		{
 			`
@@ -291,11 +309,15 @@ func TestErrorHandling(t *testing.T) {
 				return 1;
 			}
 			`,
-			"Illegal operation: BOOLEAN + BOOLEAN",
+			"Illegal infix expression, expected integer-operator-integer, received: BOOLEAN + BOOLEAN",
 		},
 		{
 			"foobar",
 			"Identifier not found: foobar",
+		},
+		{
+			`"Hulk" - "Smash"`,
+			"Invalid operator: STRING - STRING",
 		},
 	}
 
