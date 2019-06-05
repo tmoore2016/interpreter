@@ -20,6 +20,9 @@ import (
 // ObjectType represents the Doorkey data types
 type ObjectType string
 
+// BuiltinFunction type is a Go function that can be called from Doorkey
+type BuiltinFunction func(args ...Object) Object
+
 // Strings for Doorkey data types
 const (
 	INTEGER_OBJ      = "INTEGER"
@@ -28,6 +31,7 @@ const (
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for return values
 	FUNCTION_OBJ     = "FUNCTION"
+	BUILTIN_OBJ      = "BUILTIN"
 	ERROR_OBJ        = "ERROR"
 )
 
@@ -110,14 +114,14 @@ func (rv *ReturnValue) Inspect() string {
 	return rv.Value.Inspect()
 }
 
-// Structure for Function object
+// Function object structure
 type Function struct {
 	Parameters []*ast.Identifier
 	Body       *ast.BlockStatement
 	Env        *Environment // A pointer to the particular environment
 }
 
-// Identify the Function object type
+// Type check for Function object
 func (f *Function) Type() ObjectType {
 	return FUNCTION_OBJ
 }
@@ -144,6 +148,17 @@ func (f *Function) Inspect() string {
 
 	return out.String()
 }
+
+// Builtin structure for callable Go functions
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+// Type check for BUILTIN_OBJ
+func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+
+// Inspect string, return as a Builtin function
+func (b *Builtin) Inspect() string { return "builtin function" }
 
 // Error structure for error message objects
 type Error struct {

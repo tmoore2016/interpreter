@@ -261,6 +261,10 @@ func evalInfixExpression(
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(operator, left, right)
 
+	// When left and right sides are strings, evaluate a string infix expression
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
+
 	// If infix operator is ==, it will make a pointer comparison between left and right booleans. This works because there are only two Boolean expressions, the vars TRUE and FALSE and they are always in the same memory address. It won't work for integers, but those are compared in the switch statement above.
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
@@ -269,7 +273,7 @@ func evalInfixExpression(
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
 
-	// Create new error object if unrelated types are used
+	// Create new error object if unrelated types are compared
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 
@@ -319,6 +323,21 @@ func evalIntegerInfixExpression(
 	}
 }
 
+// evalStringInfixExpression evaluates string operations. Currently only concatenation.
+// To add == and != String comparisons, put here and use values rather than pointers.
+func evalStringInfixExpression(
+	operator string,
+	left, right object.Object,
+) object.Object {
+	if operator != "+" {
+		return newError("Invalid operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	return &object.String{Value: leftVal + rightVal}
+}
+
 // evalIfExpression evaluates the conditions of an If or If/Else expression
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
 
@@ -366,13 +385,17 @@ func evalIdentifier(
 	env *object.Environment,
 ) object.Object {
 
-	val, ok := env.Get(node.Value)
-
-	if !ok {
-		return newError("Identifier not found: " + node.Value)
+	if val, ok := env.Get(node.Value); ok {
+		return val
 	}
 
-	return val
+	// Fallback when identifier is not bound to value in current environment, checks builtin functions (builtins.go)
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	// Failure mode
+	return newError("Identifier not found: " + node.Value)
 }
 
 // evalExpressions evaluates ast.Expressions from a function in the context of the current environment
@@ -397,17 +420,21 @@ func evalExpressions(
 
 // applyFunction verifies a function object and converts the function parameter to *object.Function to access the .Env and .Body fields.
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
+	switch fn := fn.(type) {
 
-	if !ok {
+	// Standard object.Function types
+	case *object.Function:
+		extendedEnv := extendFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
+
+	// Builtin function types
+	case *object.Builtin:
+		return fn.Fn(args...)
+
+	default:
 		return newError("Not a function, received type: %s", fn.Type())
 	}
-
-	extendedEnv := extendFunctionEnv(function, args)
-
-	evaluated := Eval(function.Body, extendedEnv)
-
-	return unwrapReturnValue(evaluated)
 }
 
 // extendFunctionEnv creates a new *object.Environment that's enclosed by the function's environment. This allows the function's arguments to bind to the function's parameter names without overwriting the original environment.
