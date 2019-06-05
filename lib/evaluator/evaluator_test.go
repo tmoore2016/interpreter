@@ -418,3 +418,42 @@ func TestClosures(t *testing.T) {
 
 	testIntegerObject(t, testEval(input), 4)
 }
+
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{`len("")`, 0},
+		{`len("five")`, 4},
+		{`len("Hulk Smash!")`, 11},
+		{`len(8)`, "argument to 'len' not supported, got INTEGER"},
+		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+
+		// If Go returns an int, len function worked, return expected and value
+		case int:
+			testIntegerObject(t, evaluated, int64(expected))
+
+		// If Go returns a string, return error object
+		case string:
+			errObj, ok := evaluated.(*object.Error)
+
+			// If string isn't an error object, return evals
+			if !ok {
+				t.Errorf("object is not Error. got=%T (%+v)", evaluated, evaluated)
+				continue
+			}
+
+			// If error message received isn't expected, show expected and actual error messages
+			if errObj.Message != expected {
+				t.Errorf("wrong error message. expected=%q, got=%q", expected, errObj.Message)
+			}
+		}
+	}
+}
