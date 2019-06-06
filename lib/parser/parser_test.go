@@ -1016,3 +1016,34 @@ func TestCallExpressionArgumentParsing(t *testing.T) {
 		}
 	}
 }
+
+// TestParsingArrayLiterals tests the parsing of arrays, ordered lists of any type, separated by commas, enclosed by brackets.
+func TestParsingArrayLiterals(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+
+	// Failure when expression isn't an ArrayLiteral type
+	if !ok {
+		t.Fatalf("expression not ast.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	// Failure when number of items in the array isn't 3
+	if len(array.Elements) != 3 {
+		t.Fatalf("len(array.Elements) not 3. got=%d", len(array.Elements))
+	}
+
+	// Tests the first element of the array
+	testIntegerLiteral(t, array.Elements[0], 1)
+	// Tests the second element of the array
+	testInfixExpression(t, array.Elements[1], 2, "*", 2)
+	// Tests the third elements of the array
+	testInfixExpression(t, array.Elements[2], 3, "+", 3)
+}
