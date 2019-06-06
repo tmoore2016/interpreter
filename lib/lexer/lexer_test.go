@@ -36,6 +36,7 @@ func TestNextToken(t *testing.T) {
 		10 != 9;
 		"newString"
 		"new string"
+		[1, 2];
 	`
 
 	// A collection of tests
@@ -148,6 +149,14 @@ func TestNextToken(t *testing.T) {
 		// "newString", "new string"
 		{token.STRING, "newString"},
 		{token.STRING, "new string"},
+
+		// [1, 2];
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.RBRACKET, "]"},
+		{token.SEMICOLON, ";"},
 
 		// description
 		// {token., },
