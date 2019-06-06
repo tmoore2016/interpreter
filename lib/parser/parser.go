@@ -90,6 +90,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LPAREN, p.parseGroupedExpression)   // Register a ( prefix expression
 	p.registerPrefix(token.IF, p.parseIfExpression)            // Register an IF prefix expression
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)   // Register a Function prefix expression
+	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)      // Register a [ prefix expression for arrays
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -337,6 +338,44 @@ func (p *Parser) parseBoolean() ast.Expression {
 	return bo
 }
 
+// parseArrayLiteral parses elements following an '[' prefix expression through parseExpressionList until the end token ']' is encountered, and returns the list of elements within an ArrayLiteral token.
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.curToken}
+
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+
+	return array
+}
+
+// parseExpressionList parses through each element in the list, ignoring commas, until it reaches the specified end token (']' for arrays)
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	// Return list if the next token is the end token, for an empty array
+	if p.peekTokenIs(end) {
+		p.nextToken()
+		return list
+	}
+
+	// Advance to the next token and append the element to the list
+	p.nextToken()
+	list = append(list, p.parseExpression(LOWEST))
+
+	// If the next token is a comma, advance twice
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		list = append(list, p.parseExpression(LOWEST))
+	}
+
+	// If there is no end token, return nil
+	if !p.expectPeek(end) {
+		return nil
+	}
+
+	return list
+}
+
 // parsePrefixExpression parses ! and - prefixes, and their associated expressions
 func (p *Parser) parsePrefixExpression() ast.Expression {
 
@@ -510,7 +549,8 @@ func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	exp := &ast.CallExpression{Token: p.curToken, Function: function}
 
 	// Parse call expression arguments
-	exp.Arguments = p.parseCallArguments()
+	exp.Arguments = p.parseExpressionList(token.RPAREN)
+	//exp.Arguments = p.parseCallArguments() // old version
 
 	return exp
 }
