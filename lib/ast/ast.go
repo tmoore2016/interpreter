@@ -397,3 +397,34 @@ func (ce *CallExpression) String() string {
 
 	return out.String()
 }
+
+// ArrayLiteral structure for an array, an ordered list of any type, separated by commas, enclosed by brackets.
+type ArrayLiteral struct {
+	Token    token.Token // the '[' token
+	Elements []Expression
+}
+
+// ExpressionNode creates an AST expression node for ArrayLiterals
+func (al *ArrayLiteral) expressionNode() {}
+
+// TokenLiteral returns the token value for array literal
+func (al *ArrayLiteral) TokenLiteral() string {
+	return al.Token.Literal
+}
+
+// String loops through the ArrayLiteral elements and appends each to a string separated by commas, enclosed by brackets
+func (al *ArrayLiteral) String() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+
+	for _, el := range al.Elements {
+		elements = append(elements, el.String())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
