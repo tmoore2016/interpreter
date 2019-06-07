@@ -27,6 +27,7 @@ type BuiltinFunction func(args ...Object) Object
 const (
 	INTEGER_OBJ      = "INTEGER"
 	STRING_OBJ       = "STRING"
+	ARRAY_OBJ        = "ARRAY"
 	BOOLEAN_OBJ      = "BOOLEAN"
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE" // An object for return values
@@ -69,6 +70,33 @@ func (s *String) Type() ObjectType {
 // Inspect AST string node and return its value
 func (s *String) Inspect() string {
 	return s.Value
+}
+
+// Array structure for an array object
+type Array struct {
+	Elements []Object
+}
+
+// Type assigns an Array.Type to an array object
+func (ao *Array) Type() ObjectType {
+	return ARRAY_OBJ
+}
+
+// Inspect loops through the elements of an array object and appends their index ID to each
+func (ao *Array) Inspect() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+
+	for _, e := range ao.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
 }
 
 // Boolean struct wraps a bool value in object.Boolean

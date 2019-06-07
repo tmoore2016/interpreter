@@ -41,8 +41,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
 
-	// Expressions:
-
 	// AST IntegerLiteral node returns an Integer Literal expression object with type and value
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
@@ -50,6 +48,14 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	// AST StringLiteral node returns a String Literal expression object with type and value
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}
+
+	// AST ArrayLiteral node returns an array literal expression object with element and index number
+	case *ast.ArrayLiteral:
+		elements := evalExpressions(node.Elements, env)
+		if len(elements) == 1 && isError(elements[0]) {
+			return elements[0]
+		}
+		return &object.Array{Elements: elements}
 
 	// AST Boolean node returns a Boolean expression object with type and value
 	case *ast.Boolean:
