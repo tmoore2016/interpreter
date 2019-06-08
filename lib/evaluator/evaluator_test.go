@@ -429,6 +429,16 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("Hulk Smash!")`, 11},
 		{`len(8)`, "argument to 'len' not supported, got INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`let arr = [4, 5 * 5, 32]; len(arr)`, 3},
+		{`let arr = ["thursday", "friday", "saturday"]; len(arr[1])`, 6},
+		{`let arr = [2, 4, 6]; first(arr)`, 2},
+		{`let arr = []; first(arr)`, nil},
+		{`let arr = [10, 100, 1000, 10000]; last(arr)`, 10000},
+		{`let arr = []; last(arr)`, nil},
+		{`let arr = [20, 40, 60, 80, 100]; tail(arr)`, []int{40, 60, 80, 100}},
+		{`let arr = []; tail(arr)`, nil},
+		{`push([], 1)`, []int{1}},
+		{`push(1, 1)`, "argument to 'push' must be an ARRAY, got INTEGER"},
 	}
 
 	for _, tt := range tests {
@@ -439,7 +449,8 @@ func TestBuiltinFunctions(t *testing.T) {
 		// If Go returns an int, len function worked, return expected and value
 		case int:
 			testIntegerObject(t, evaluated, int64(expected))
-
+		case nil:
+			testNullObject(t, evaluated)
 		// If Go returns a string, return error object
 		case string:
 			errObj, ok := evaluated.(*object.Error)
@@ -453,6 +464,22 @@ func TestBuiltinFunctions(t *testing.T) {
 			// If error message received isn't expected, show expected and actual error messages
 			if errObj.Message != expected {
 				t.Errorf("wrong error message. expected=%q, got=%q", expected, errObj.Message)
+			}
+
+		case []int:
+			array, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Errorf("object is not an array. got=%T (%+v)", evaluated, evaluated)
+				continue
+			}
+
+			if len(array.Elements) != len(expected) {
+				t.Errorf("Wrong number of elements. want=%d, got=%d", len(expected), len(array.Elements))
+				continue
+			}
+
+			for i, expectedElem := range expected {
+				testIntegerObject(t, array.Elements[i], int64(expectedElem))
 			}
 		}
 	}
