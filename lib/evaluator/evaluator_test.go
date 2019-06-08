@@ -457,3 +457,67 @@ func TestBuiltinFunctions(t *testing.T) {
 		}
 	}
 }
+
+// TestArrayLiterals is a test for array elements and indexing
+func TestArrayLiterals(t *testing.T) {
+	input := "[1, 8 * 8, 4 + 4]"
+
+	evaluated := testEval(input)
+
+	result, ok := evaluated.(*object.Array)
+
+	if !ok {
+		t.Fatalf("Object is not an Array. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if len(result.Elements) != 3 {
+		t.Fatalf("Array has wrong number of elements. got=%d", len(result.Elements))
+	}
+
+	testIntegerObject(t, result.Elements[0], 1)
+	testIntegerObject(t, result.Elements[1], 64)
+	testIntegerObject(t, result.Elements[2], 8)
+}
+
+// TestArrayIndexExpressions tests calling array elements by index number
+func TestArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[7, 8, 9][1]",
+			8,
+		},
+		{
+			"[6, 14, 0][2]",
+			0,
+		},
+		{
+			"let i = 0; [100][i];",
+			100,
+		},
+		{
+			"let myArray = [10, 100 * 10, 20]; myArray[1];",
+			1000,
+		},
+		{
+			"let myArray = [2 + 2, 12, 16, 34, 88, 23]; myArray[4];",
+			88,
+		},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}

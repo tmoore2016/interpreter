@@ -26,6 +26,7 @@ const (
 	PRODUCT                // *
 	PREFIX                 // -X or !X
 	CALL                   // myFunction(X)
+	INDEX                  // array[index]
 )
 
 // Assigns parser precedence to tokens
@@ -39,6 +40,7 @@ var precedences = map[token.TokenType]int{
 	token.DIVIDE:   PRODUCT,
 	token.MULTIPLY: PRODUCT,
 	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX,
 }
 
 // Parser structure, pulls data from lexer
@@ -101,7 +103,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
-	p.registerInfix(token.LPAREN, p.parseCallExpression) // Register a ( infix expression for call expressions
+	p.registerInfix(token.LPAREN, p.parseCallExpression)
+	p.registerInfix(token.LBRACKET, p.parseIndexExpression) // Register a ( infix expression for call expressions
 
 	return p
 }
@@ -345,6 +348,20 @@ func (p *Parser) parseArrayLiteral() ast.Expression {
 	array.Elements = p.parseExpressionList(token.RBRACKET)
 
 	return array
+}
+
+// parseIndexExpression parses index expressions for arrays
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	exp.Index = p.parseExpression(LOWEST)
+
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return exp
 }
 
 // parseExpressionList parses through each element in the list, ignoring commas, until it reaches the specified end token (']' for arrays)

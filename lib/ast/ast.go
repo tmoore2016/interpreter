@@ -428,3 +428,31 @@ func (al *ArrayLiteral) String() string {
 
 	return out.String()
 }
+
+// IndexExpression structure for array index expressions
+type IndexExpression struct {
+	Token token.Token // The [ token
+	Left  Expression
+	Index Expression
+}
+
+// expressionNode receives an IndexExpression for an AST node
+func (ie *IndexExpression) expressionNode() {}
+
+// TokenLiteral receives an IndexExpression for a token
+func (ie *IndexExpression) TokenLiteral() string {
+	return ie.Token.Literal
+}
+
+// String inserts ([]) into the IndexExpression to order elements of the array as "(LeftExp[i])"
+func (ie *IndexExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString("[")
+	out.WriteString(ie.Index.String())
+	out.WriteString("])")
+
+	return out.String()
+}
