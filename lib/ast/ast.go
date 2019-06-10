@@ -456,3 +456,34 @@ func (ie *IndexExpression) String() string {
 
 	return out.String()
 }
+
+// HashLiteral structure for hash maps
+type HashLiteral struct {
+	Token token.Token // the '{' token
+	pairs map[Expression]Expression
+}
+
+// expressionNode creates a HashLiteral AST expression node
+func (hl *HashLiteral) expressionNode() {}
+
+// TokenLiteral returns the HashLiteral token type
+func (hl *HashLiteral) TokenLiteral() string {
+	return hl.Token.Literal
+}
+
+// String appends hash literal key value pairs to a new string, separated by commas.
+func (hl *HashLiteral) String() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+
+	for key, value := range hl.pairs {
+		pairs = append(pairs, key.String()+":"+value.String())
+	}
+
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}
