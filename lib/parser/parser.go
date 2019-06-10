@@ -93,6 +93,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IF, p.parseIfExpression)            // Register an IF prefix expression
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)   // Register a Function prefix expression
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)      // Register a [ prefix expression for arrays
+	p.registerPrefix(token.LBRACE, p.parseHashLiteral)         // Register a { prefix for hash literal expressions
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn) // Create a hash table of infix expression tokens
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -362,6 +363,36 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	}
 
 	return exp
+}
+
+// parseHashLiteral parses hash literal expressions by looping over key-value pairs and calling parseExpression two times for each pair and filling hash.Pairs. If peekToken is }, it returns nil.
+func (p *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{Token: p.curToken}
+	hash.Pairs = make(map[ast.Expression]ast.Expression)
+
+	for !p.peekTokenIs(token.RBRACE) {
+		p.nextToken()
+		key := p.parseExpression(LOWEST)
+
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+
+		p.nextToken()
+		value := p.parseExpression(LOWEST)
+
+		hash.Pairs[key] = value
+
+		if !p.peekTokenIs(token.RBRACE) && !p.expectPeek(token.COMMA) {
+			return nil
+		}
+	}
+
+	if !p.expectPeek(token.RBRACE) {
+		return nil
+	}
+
+	return hash
 }
 
 // parseExpressionList parses through each element in the list, ignoring commas, until it reaches the specified end token (']' for arrays)

@@ -37,6 +37,7 @@ func TestNextToken(t *testing.T) {
 		"newString"
 		"new string"
 		[1, 2];
+		{"The Sea Wolf": "Jack London"}
 	`
 
 	// A collection of tests
@@ -157,6 +158,13 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "2"},
 		{token.RBRACKET, "]"},
 		{token.SEMICOLON, ";"},
+
+		// {"The Sea Wolf": "Jack London"}
+		{token.LBRACE, "{"},
+		{token.STRING, "The Sea Wolf"},
+		{token.COLON, ":"},
+		{token.STRING, "Jack London"},
+		{token.RBRACE, "}"},
 
 		// description
 		// {token., },
