@@ -460,7 +460,7 @@ func (ie *IndexExpression) String() string {
 // HashLiteral structure for hash maps
 type HashLiteral struct {
 	Token token.Token // the '{' token
-	pairs map[Expression]Expression
+	Pairs map[Expression]Expression
 }
 
 // expressionNode creates a HashLiteral AST expression node
@@ -477,7 +477,7 @@ func (hl *HashLiteral) String() string {
 
 	pairs := []string{}
 
-	for key, value := range hl.pairs {
+	for key, value := range hl.Pairs {
 		pairs = append(pairs, key.String()+":"+value.String())
 	}
 
