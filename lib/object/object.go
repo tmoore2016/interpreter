@@ -270,3 +270,8 @@ func (h *Hash) Inspect() string {
 
 	return out.String()
 }
+
+// Hashable determines whether the type given is suitable for hashing.
+type Hashable interface {
+	HashKey() HashKey
+}

@@ -319,6 +319,10 @@ func TestErrorHandling(t *testing.T) {
 			`"Hulk" - "Smash"`,
 			"Invalid operator: STRING - STRING",
 		},
+		{
+			`{"Hulk": "Smash"}[fn(x) {x}];`,
+			"Unusable as hash key: FUNCTION",
+		},
 	}
 
 	for _, tt := range tests {
@@ -537,6 +541,94 @@ func TestArrayIndexExpressions(t *testing.T) {
 			88,
 		},
 	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
+// TestHashLiterals tests that when an ast.HashLiteral is encountered, a new object.Hash with HashPairs is mapped to the matching HashKey using the Pairs attribute.
+func TestHashLiterals(t *testing.T) {
+	input := `let two = "two";
+	{
+		"one": 10-9,
+		two : 1 + 1,
+		"thr" + "ee": 6/2,
+		4: 4,
+		true: 5,
+		false: 6	
+	}`
+
+	evaluated := testEval(input)
+
+	result, ok := evaluated.(*object.Hash)
+
+	if !ok {
+		t.Fatalf("Eval didn't return Hash. got=%T (%+v", evaluated, evaluated)
+	}
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
+	}
+
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("Hash has wrong number of pairs. got=%d", len(result.Pairs))
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pair, ok := result.Pairs[expectedKey]
+
+		if !ok {
+			t.Errorf("No pair for given key in Pairs")
+		}
+
+		testIntegerObject(t, pair.Value, expectedValue)
+	}
+}
+
+// TestHashIndexExpressions tests calling hash index expressions
+func TestHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`{"age": 5}["age"]`,
+			5,
+		},
+		{
+			`{"age": 5}["height"]`,
+			nil,
+		},
+		{
+			`let key = "age"; {"age": 5}[key]`,
+			5,
+		},
+		{
+			`{}["age"]`,
+			nil,
+		},
+		{
+			`{true: 5}[true]`,
+			5,
+		},
+		{
+			`{false: 5}[false]`,
+			5,
+		},
+	}
+
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 		integer, ok := tt.expected.(int)
