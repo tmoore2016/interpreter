@@ -75,6 +75,10 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Value)
 
+	// AST HashLiteral node evaluates HashLiterals
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, env)
+
 	// AST prefix expression node evaluates the right side of the prefix expression, and then evaluates the prefix expression operator
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
@@ -399,6 +403,40 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
+// evalHashLiteral evaluates the key node to determine it is a hashable type, then evaluates the value node and adds the key-value pair to the pairs map by calling HashKey(). A new HashPair object is created by pointing to key and value and added to pairs.
+func evalHashLiteral(
+	node *ast.HashLiteral,
+	env *object.Environment,
+) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+
+	for keyNode, valueNode := range node.Pairs {
+		key := Eval(keyNode, env)
+
+		if isError(key) {
+			return key
+		}
+
+		hashKey, ok := key.(object.Hashable)
+
+		if !ok {
+			return newError("Unusable as hash key: %s", key.Type())
+		}
+
+		value := Eval(valueNode, env)
+
+		if isError(value) {
+			return value
+		}
+
+		hashed := hashKey.HashKey()
+
+		pairs[hashed] = object.HashPair{Key: key, Value: value}
+	}
+
+	return &object.Hash{Pairs: pairs}
+}
+
 // evalIdentifier evaluates an AST identifier node and retrieves its value from the environment association, if it exists.
 func evalIdentifier(
 	node *ast.Identifier,
@@ -445,6 +483,9 @@ func evalIndexExpression(left, index object.Object) object.Object {
 	case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
 		return evalArrayIndexExpression(left, index)
 
+	case left.Type() == object.HASH_OBJ:
+		return evalHashIndexExpression(left, index)
+
 	default:
 		return newError("Index operator not supported: %s", left.Type())
 	}
@@ -461,6 +502,25 @@ func evalArrayIndexExpression(array, index object.Object) object.Object {
 	}
 
 	return arrayObject.Elements[idx]
+}
+
+// evalHashIndexExpression matches a hash key to its value, if the hash key doesn't exist, returns null
+func evalHashIndexExpression(hash, index object.Object) object.Object {
+	hashObject := hash.(*object.Hash)
+
+	key, ok := index.(object.Hashable)
+
+	if !ok {
+		return newError("Unusable as hash key: %s", index.Type())
+	}
+
+	pair, ok := hashObject.Pairs[key.HashKey()]
+
+	if !ok {
+		return NULL
+	}
+
+	return pair.Value
 }
 
 // applyFunction verifies a function object and converts the function parameter to *object.Function to access the .Env and .Body fields.
