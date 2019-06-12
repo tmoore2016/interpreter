@@ -12,6 +12,7 @@ package object
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"strings"
 
 	"github.com/tmoore2016/interpreter/lib/ast"
@@ -34,6 +35,7 @@ const (
 	FUNCTION_OBJ     = "FUNCTION"
 	BUILTIN_OBJ      = "BUILTIN"
 	ERROR_OBJ        = "ERROR"
+	HASH_OBJ         = "HASH"
 )
 
 // Object represents each data type with a type and value
@@ -201,4 +203,70 @@ func (e *Error) Type() ObjectType {
 // Inspect Error returns error message (ERROR_OBJ value)
 func (e *Error) Inspect() string {
 	return "ERROR: " + e.Message
+}
+
+// HashKey structure for hash keys. Type is any object type, value is an integer.
+// Caching HashKey methods would be a performance optimization
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+// HashKey function for boolean comparisons
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+
+	return HashKey{Type: b.Type(), Value: value}
+}
+
+// HashKey function for comparing integer values
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
+
+// HashKey function for comparing string values
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
+
+// HashPair structure contains the objects that generated the HashKey, their type and values.
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+// Hash structure points to the HashKey and the HashPair
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+// Type returns HASH_OBJ type
+func (h *Hash) Type() ObjectType {
+	return HASH_OBJ
+}
+
+// Inspect iterates over hash pairs and returns their key and value as a string.
+func (h *Hash) Inspect() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", pair.Key.Inspect(), pair.Value.Inspect()))
+	}
+
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
 }
