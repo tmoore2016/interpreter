@@ -2,6 +2,16 @@ Doorkey Examples:
 
 // = comments, >> = Result
 
+// Assign variables, create a function, call the function with parameters
+let five = 5;
+let ten = 10;
+
+let add = fn(x, y) {
+  x + y;
+};
+
+let result = add(five, ten);
+
 // Create and insert elements into an array
 let arr = [1,2,3]; // ; is optional, allows multiple commands on a line
 arr
