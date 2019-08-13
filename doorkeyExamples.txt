@@ -12,10 +12,25 @@ let add = fn(x, y) {
 
 let result = add(five, ten);
 
+Arrays:
+
 // Create and insert elements into an array
 let arr = [1,2,3]; // ; is optional, allows multiple commands on a line
 arr
 >>[1, 2, 3]
+
+// Call builtin len() to count elements in array
+len(arr)
+>>5
+
+// Call the first element in an array
+first(arr)
+
+// Call the last element in an array
+last(arr)
+
+// Call all elements except the first, in an array
+tail(arr)
 
 // Create a function
 let square = fn(x){x*x};
@@ -42,9 +57,9 @@ let arr = push(arr, arr[5] + "th");
 arr
 >>[1,2,3,four,fourth]
 
-// Call builtin len() to count elements in array
-len(arr)
->>5
+
+
+
 
 
 

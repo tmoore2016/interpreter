@@ -8,11 +8,24 @@ By following "Writing an Interpreter in Go" by Thorsten Ball, https://interprete
 package evaluator
 
 import (
+	"fmt"
+
 	"github.com/tmoore2016/interpreter/lib/object"
 )
 
 // Separate Builtins environment, allowing builtin Go functions to be called through Doorkey.
 var builtins = map[string]*object.Builtin{
+
+	// puts function allows Doorkey to print to terminal
+	"puts": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+
+			return NULL
+		},
+	},
 
 	// length (len) function for counting characters in a string
 	"len": &object.Builtin{
