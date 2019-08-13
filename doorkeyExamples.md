@@ -1,82 +1,83 @@
 # Doorkey Examples
-
-*// = comments*, **Result**
-
-*// Assign variables, create a function, call the function with parameters*
-let five = 5;
-
-let ten = 10;
-
-let add = fn(x, y) {
-  x + y;
-};
-
-let result = add(five, ten);
-
-result
-**15**
-
-*// Create and insert elements into an array*
-let arr = [1,2,3];
-arr
-**[1, 2, 3]**
-
-*// Call builtin len() to count elements in array*
-len(arr)
-**3**
-
-*// Call the first element in an array*
-first(arr)
-**1**
-
-*// Call the last element in an array*
-last(arr)
-**3**
-
-*// Call all elements except the first, in an array*
-tail(arr)
-**[2,3]**
-
-*// Create a function*
-let square = fn(x){x*x};
-
+&nbsp;
+*// = comments*&nbsp;
+**Bold = Result**&nbsp;
+&nbsp;
+*// Assign variables, create a function, call the function with parameters*&nbsp;
+let five = 5;&nbsp;
+&nbsp;
+let ten = 10;&nbsp;
+&nbsp;
+let add = fn(x, y) {&nbsp;
+  x + y;&nbsp;
+};&nbsp;
+&nbsp;
+let result = add(five, ten);&nbsp;
+&nbsp;
+result&nbsp;
+**15**&nbsp;
+&nbsp;
+*// Create and insert elements into an array*&nbsp;
+let arr = [1,2,3];&nbsp;
+arr&nbsp;
+**[1, 2, 3]**&nbsp;
+&nbsp;
+*// Call builtin len() to count elements in array*&nbsp;
+len(arr)&nbsp;
+**3**&nbsp;
+&nbsp;
+*// Call the first element in an array*&nbsp;
+first(arr)&nbsp;
+**1**&nbsp;
+&nbsp;
+*// Call the last element in an array*&nbsp;
+last(arr)&nbsp;
+**3**&nbsp;
+&nbsp;
+*// Call all elements except the first, in an array*&nbsp;
+tail(arr)&nbsp;
+**[2,3]**&nbsp;
+&nbsp;
+*// Create a function*&nbsp;
+let square = fn(x){x*x};&nbsp;
+&nbsp;
 *// Call the second array element as a parameter within a function*
-square(arr[1])
-**4**
-
+square(arr[1])&nbsp;
+**4**&nbsp;
+&nbsp;
 *// Call the builtin push() function to add an element to the array.*
-let arr = push(arr, "four");
-arr
-**[1, 2, 3, four]**
-
-*// Use operators on array elements*
-arr[1] * arr[2]
-**6**
-
-*// Concatenate string element inside array*
-arr[3] + "th"
-**fourth**
-
-*// Concatenate string inside array and push into the array*
-let arr = push(arr, arr[5] + "th");
-arr
-**[1,2,3,four,fourth]**
-
-*// Create a hash table*
-let books = [{"title": "The Sea-Wolf", "authorFirstName": "Jack", "authorLastName": "London", "age": 115}, {"title": "Fear and Loathing in Las Vegas", "authorFirstName": "Hunter", "authorLastName": "Thompson", "age": 48}];
-
-books
-**[{title: The Sea-Wolf, authorFirstName: Jack, authorLastName: London, age: 115}, {title: Fear and Loathing in Las Vegas, authorFirstName: Hunter, authorLastName: Thompson, age: 48}]**
-
-books[0]["title"]
-**The Sea-Wolf**
-
-*// Create a mapping function*
-let a = [1,3,5,7];
-
-let square = fn(x) {x*x};
-
-let map = fn(newArr, f) {let iter = fn(newArr, accumulated) { if (len(newArr) == 0) {accumulated} else{iter(tail(newArr),push(accumulated, f(first(newArr))));}}; iter(newArr, []);};
-
-map(a,square);
-**[1, 9, 25, 49]**
+let arr = push(arr, "four");&nbsp;
+arr&nbsp;
+**[1, 2, 3, four]**&nbsp;
+&nbsp;
+*// Use operators on array elements*&nbsp;
+arr[1] * arr[2]&nbsp;
+**6**&nbsp;
+&nbsp;
+*// Concatenate string element inside array*&nbsp;
+arr[3] + "th"&nbsp;
+**fourth**&nbsp;
+&nbsp;
+*// Concatenate string inside array and push into the array*&nbsp;
+let arr = push(arr, arr[5] + "th");&nbsp;
+arr&nbsp;
+**[1,2,3,four,fourth]**&nbsp;
+&nbsp;
+*// Create a hash table*&nbsp;
+let books = [{"title": "The Sea-Wolf", "authorFirstName": "Jack", "authorLastName": "London", "age": 115}, {"title": "Fear and Loathing in Las Vegas", "authorFirstName": "Hunter", "authorLastName": "Thompson", "age": 48}];&nbsp;
+&nbsp;
+books&nbsp;
+**[{title: The Sea-Wolf, authorFirstName: Jack, authorLastName: London, age: 115}, {title: Fear and Loathing in Las Vegas, authorFirstName: Hunter, authorLastName: Thompson, age: 48}]**&nbsp;
+&nbsp;
+books[0]["title"]&nbsp;
+**The Sea-Wolf**&nbsp;
+&nbsp;
+*// Create a mapping function*&nbsp;
+let a = [1,3,5,7];&nbsp;
+&nbsp;
+let square = fn(x) {x*x};&nbsp;
+&nbsp;
+let map = fn(newArr, f) {let iter = fn(newArr, accumulated) { if (len(newArr) == 0) {accumulated} else{iter(tail(newArr),push(accumulated, f(first(newArr))));}}; iter(newArr, []);};&nbsp;
+&nbsp;
+map(a,square);&nbsp;
+**[1, 9, 25, 49]**&nbsp;
