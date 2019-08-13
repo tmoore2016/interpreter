@@ -59,9 +59,9 @@ arr[3] + "th"
 **fourth**  
   
 *// Concatenate string inside array and push into the array*  
-let arr = push(arr, arr[5] + "th");  
+let arr = push(arr, arr[3] + "th");  
 arr  
-**[1,2,3,four,fourth]**  
+**[1, 2, 3, four, fourth]**  
   
 *// Create a hash table*  
 let books = [{"title": "The Sea-Wolf", "authorFirstName": "Jack", "authorLastName": "London", "age": 115}, {"title": "Fear and Loathing in Las Vegas", "authorFirstName": "Hunter", "authorLastName": "Thompson", "age": 48}];  
